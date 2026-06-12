@@ -1,33 +1,47 @@
 import json
-import os
 import re
+from typing import Literal, Optional
 
-from openai import OpenAI
 from pydantic import BaseModel, Field
 from tqdm import tqdm
 
 from utils.mongo_utils import getMongoClient, get_docs_by_year, update_citations_by_docid
+from utils.openai import connect_to_openai, get_structured_response, get_response
 
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:8000/v1")
-LLM_MODEL = os.getenv("LLM_MODEL", "gemma-4-12B-it")
+llm_client = connect_to_openai()
 
-# llm_client = OpenAI(base_url=LLM_BASE_URL, api_key=os.getenv("LLM_API_KEY", "none"))
-llm_client = OpenAI(base_url=LLM_BASE_URL, api_key=os.getenv("LLM_API_KEY", "a3b91d38-6c74-4e56-b89f-3b2cfd728d1a"))
+CitationType = Literal[
+    "us_code", "public_law", "statutes_at_large", "far", "dfars", "ndaa", "other"
+]
+
+
+class AlternateCitation(BaseModel):
+    value: str = Field(description="The alternate name for the same citation, normalized for its type")
+    type: CitationType = Field(description="Citation type of the alternate name")
+
+
+class Citation(BaseModel):
+    value: str = Field(description="The normalized primary citation")
+    type: CitationType = Field(description="Citation type of the primary value")
+    alternate: Optional[AlternateCitation] = Field(
+        default=None,
+        description="An alternate name referring to this same citation, if one exists",
+    )
 
 
 class Citations(BaseModel):
-    us_code: list[str] = Field(default_factory=list, description='U.S. Code citations, e.g. "10 U.S.C. 3201"')
-    public_law: list[str] = Field(default_factory=list, description='Public Law numbers, e.g. "115-91"')
-    statutes_at_large: list[str] = Field(default_factory=list, description='Statutes at Large citations, e.g. "131 Stat. 1283"')
-    far: list[str] = Field(default_factory=list, description='Federal Acquisition Regulation citations, e.g. "15.209"')
-    dfars: list[str] = Field(default_factory=list, description='DFARS citations, e.g. "252.203-7000"')
-    ndaa: list[str] = Field(default_factory=list, description='References to other NDAA sections as "YEAR_SECTION", e.g. "2017_847"')
-    other: list[str] = Field(default_factory=list, description="Any other legal citations that do not fit the above categories")
+    citations: list[Citation] = Field(default_factory=list)
 
 
 SYSTEM_PROMPT = """You are a legal citation extractor for U.S. defense legislation.
-Given the text of a section of a National Defense Authorization Act (NDAA), extract every legal citation it contains, grouped by type:
+Given the text of a section of a National Defense Authorization Act (NDAA), extract every legal citation it contains as a flat list of citation objects.
 
+Each citation object has:
+- value: the normalized citation text.
+- type: one of the citation types below.
+- alternate (optional): if the same real-world law/citation is named more than one way, record the citation ONCE and put the other name here as {value, type}. Otherwise omit it (null).
+
+Citation types and how to normalize each value:
 - us_code: U.S. Code citations, normalized like "10 U.S.C. 3201" (title, "U.S.C.", section number).
 - public_law: Public Law numbers, normalized like "115-91" (no "Public Law" prefix).
 - statutes_at_large: Statutes at Large citations like "131 Stat. 1283".
@@ -36,45 +50,39 @@ Given the text of a section of a National Defense Authorization Act (NDAA), extr
 - ndaa: References to sections of other NDAAs, formatted "YEAR_SECTION" using the fiscal year, e.g. section 847 of the NDAA for Fiscal Year 2017 becomes "2017_847".
 - other: any remaining legal citations (CFR, Executive Orders, other named acts, etc.) as written.
 
-List each distinct citation once. If a category has no citations, return an empty list for it.
+Key rule — do not duplicate the same citation under two names. In particular, an NDAA is the same thing as a Public Law:
+- When an NDAA is cited together with its Public Law number (commonly given in brackets, e.g. "the National Defense Authorization Act for Fiscal Year 2017 (Public Law 114-328)"), store the Public Law as the primary value (type "public_law") and the NDAA as the alternate (type "ndaa", "YEAR_SECTION" format). When the citation is to a specific NDAA section, use that section in the alternate (e.g. "2017_847").
+- When only the NDAA is named (no Public Law given), store it as the primary value with type "ndaa" and no alternate.
+- Apply the same single-record-with-alternate approach to any other citation that appears under more than one name.
+
+List each distinct citation once. If there are no citations, return an empty list.
 Respond with JSON only."""
 
 
 def build_user_prompt(doc: dict) -> str:
     section = doc["section"]
     return (
-        f"NDAA for Fiscal Year {doc['fiscal_year']}\n"
-        f"Section {section['number']}: {section['heading']}\n\n"
-        f"{section['text']}"
+        f"NDAA Fiscal Year: {doc['fiscal_year']}\n"
+        f"Section Number: {section['number']}\n"
+        f"Section Title: {section['heading']}\n\n"
+        f"Section Text:\n{section['text']}"
     )
 
 
 def extract_citations_structured(doc: dict) -> Citations:
-    """Extract citations using native structured outputs (json_schema)."""
-    response = llm_client.chat.completions.parse(
-        model=LLM_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_user_prompt(doc)},
-        ],
-        response_format=Citations,
-        temperature=0,
-    )
-    return response.choices[0].message.parsed
+    """Extract citations using Azure OpenAI structured outputs (responses.parse)."""
+    return get_structured_response(llm_client, SYSTEM_PROMPT, build_user_prompt(doc), Citations)
 
 
 def extract_citations_json_fallback(doc: dict) -> Citations:
-    """Fallback for servers without json_schema support: ask for JSON and parse it."""
-    response = llm_client.chat.completions.create(
-        model=LLM_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": build_user_prompt(doc) + "\n\nRespond with a single JSON object with keys: "
-             "us_code, public_law, statutes_at_large, far, dfars, ndaa, other. Each value is a list of strings."},
-        ],
-        temperature=0,
+    """Fallback: ask for JSON text and parse it manually."""
+    user_content = (
+        build_user_prompt(doc) + "\n\nRespond with a single JSON object with one key, "
+        '"citations", whose value is a list of objects. Each object has "value" (string), '
+        '"type" (one of us_code, public_law, statutes_at_large, far, dfars, ndaa, other), '
+        'and optionally "alternate" ({"value": string, "type": <same type set>}).'
     )
-    content = response.choices[0].message.content
+    content = get_response(llm_client, SYSTEM_PROMPT, user_content)
     # Strip markdown code fences and any surrounding prose
     match = re.search(r"\{.*\}", content, re.DOTALL)
     if not match:
@@ -94,19 +102,19 @@ if __name__ == "__main__":
     db_name = "ndaa_dfars"
     collection_name = "ndaas"
 
-    for year in range(2012, 2026):
+    for year in range(2010, 2026):
         tqdm.write(f"Extracting citations for {year}")
         docs = get_docs_by_year(mongo_client, db_name, collection_name, year)
-        if year == 2012:
-            docs = docs[200:]
         for doc in tqdm(docs):
-            existing = doc.get("extracted_citations") or {}
             try:
                 citations = extract_citations(doc)
             except Exception as e:
                 tqdm.write(f"  FAILED {doc['_id']}: {e}")
                 continue
 
-            # Merge so ingestion-time fields like usc_notes are preserved
-            merged = {**existing, **citations.model_dump()}
-            update_citations_by_docid(mongo_client, db_name, collection_name, doc["_id"], merged)
+            # Overwrite extracted_citations wholesale with the citation list;
+            # usc_notes is re-derivable from ingestion and not needed here.
+            update_citations_by_docid(
+                mongo_client, db_name, collection_name, doc["_id"], citations.model_dump()["citations"]
+            )
+
