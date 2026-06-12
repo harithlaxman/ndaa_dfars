@@ -1,107 +1,29 @@
 import re
-import requests
 from pathlib import Path
-from datetime import datetime
 
 import pandas as pd
 from tqdm import tqdm
+
+from utils.api_utils import get_cfr_parts
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 INPUT_CSV = str(_PROJECT_ROOT / "data" / "tracker.csv")
 OUTPUT_CSV = str(_PROJECT_ROOT / "data" / "fr_cases.csv")
 
-def parse_fr_date(date_str):
-    """Parse a date string in MM/DD/YY or MM/DD/YYYY format to YYYY-MM-DD."""
-    date_str = date_str.strip()
-    for fmt in ("%m/%d/%y", "%m/%d/%Y"):
-        try:
-            return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    return None
-
-
-def fetch_citation_by_date_and_page(citation=None, fr_date=None):
-    fields = [
-        "document_number",
-        "citation",
-        "start_page",
-        "body_html_url",
-        "publication_date",
-        "title",
-        "cfr_references",
-    ]
-
-    params = {
-        "conditions[agencies][]": ["defense-acquisition-regulations-system", "defense-department"],
-        "conditions[type][]": "RULE",
-        "conditions[cfr][title]": "48",
-        # "conditions[cfr][part]": "200-299",
-        "conditions[search_type_id]": "6",
-        "fields[]": fields,
-        "per_page": "1000",
-    }
-
-    # Initialize variables to avoid UnboundLocalError
-    page = None
-    iso_date = None
-
-    # Parse citation into volume and page
-    if citation is not None:
-        parts = citation.strip().split(" FR ")
-        if len(parts) != 2:
-            tqdm.write(f"  Could not parse citation format: {citation}")
-        else:
-            page = parts[1].strip()
-
-    # Parse date
-    if fr_date is not None:
-        iso_date = parse_fr_date(fr_date)
-        if not iso_date:
-            tqdm.write(f"  Could not parse date: {fr_date}")
-    
-    if page is not None and iso_date is not None:
-        params["conditions[publication_date][gte]"] = iso_date
-        params["conditions[publication_date][lte]"] = iso_date
-    else:
-        params["conditions[term]"] = "NDAA"
-
-    try:
-        response = requests.get(
-            "https://www.federalregister.gov/api/v1/documents.json",
-            params=params,
-            timeout=30,
-        )
-        response.raise_for_status()
-        data = response.json()
-
-        if page is not None:
-            for result in data.get("results", []):
-                if str(result.get("start_page")) == page:
-                    return result
-        else:
-            return data.get("results", [])
-
-        tqdm.write(f"  No page match for {citation} on {iso_date}")
-        return None
-
-    except requests.exceptions.RequestException as e:
-        tqdm.write(f"  API error for {citation}: {e}")
-        return None
-
 
 def enrich_doc(doc):
-    """Extract the DFARS case from the title and flatten CFR references.
+    """Extract the DFARS case from the document's title.
 
-    Returns the enriched doc, or None if no DFARS case can be parsed.
+    Takes a doc dict from ``get_cfr_parts`` (whose ``cfr_references`` is already a
+    flattened part list). Returns the doc with ``dfars_case`` added, or None if no
+    DFARS case can be parsed from the title.
     """
     title = doc.get("title", "")
     match = re.search(r'DFARS Case ([A-Za-z0-9-]+)', title, re.IGNORECASE)
     if not match:
         return None
     doc["dfars_case"] = match.group(1).strip()
-    doc["cfr_references"] = [cit["part"] for cit in doc.get("cfr_references") or []]
     return doc
 
 
@@ -125,7 +47,7 @@ def scrape_fr():
         for citation, date in zip(citations, dates):
             key = (citation.strip(), date.strip())
             if key not in fetch_cache:
-                doc = fetch_citation_by_date_and_page(citation, date)
+                doc = get_cfr_parts(citation, date)
                 fetch_cache[key] = enrich_doc(doc) if doc else None
             if fetch_cache[key]:
                 docs.append(fetch_cache[key])

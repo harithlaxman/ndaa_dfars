@@ -8,10 +8,11 @@ from tqdm import tqdm
 
 from utils.mongo_utils import getMongoClient, get_docs_by_year, update_citations_by_docid
 
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:9379/v1")
-LLM_MODEL = os.getenv("LLM_MODEL", "gemma4-12b,gpu")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:8000/v1")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemma-4-12B-it")
 
-llm_client = OpenAI(base_url=LLM_BASE_URL, api_key=os.getenv("LLM_API_KEY", "none"))
+# llm_client = OpenAI(base_url=LLM_BASE_URL, api_key=os.getenv("LLM_API_KEY", "none"))
+llm_client = OpenAI(base_url=LLM_BASE_URL, api_key=os.getenv("LLM_API_KEY", "a3b91d38-6c74-4e56-b89f-3b2cfd728d1a"))
 
 
 class Citations(BaseModel):
@@ -93,9 +94,11 @@ if __name__ == "__main__":
     db_name = "ndaa_dfars"
     collection_name = "ndaas"
 
-    for year in range(2000, 2026):
+    for year in range(2012, 2026):
         tqdm.write(f"Extracting citations for {year}")
         docs = get_docs_by_year(mongo_client, db_name, collection_name, year)
+        if year == 2012:
+            docs = docs[200:]
         for doc in tqdm(docs):
             existing = doc.get("extracted_citations") or {}
             try:

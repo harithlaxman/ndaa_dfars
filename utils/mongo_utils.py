@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from pymongo import MongoClient, TEXT
+from pymongo import MongoClient, ASCENDING, DESCENDING, TEXT
 from typing import List, Dict, Any, Optional
 
 def getMongoClient() -> MongoClient:
@@ -22,7 +22,7 @@ def insert_docs(client: MongoClient,
     collection = db[collection_name]
     collection.insert_many(docs)
 
-def get_doc_by_id(client: MongoClient, 
+def get_doc_by_id(client: MongoClient,
                   db_name: str, 
                   collection_name: str, 
                   doc_id: str) -> Optional[Dict[str, Any]]:
@@ -147,3 +147,57 @@ def update_citations_by_docid(client: MongoClient,
     
     # Returns True if a document was found AND changed
     return result.modified_count > 0
+
+
+# ─── DFARS helpers ────────────────────────────────────────────────────────────
+# DFARS docs are one-per-node-per-version, _id = f"{section_number}_{version_date}".
+
+def get_dfars_section(client: MongoClient,
+                      db_name: str,
+                      collection_name: str,
+                      section_number: str,
+                      version_date: str) -> Optional[Dict[str, Any]]:
+    """Fetches a single DFARS node at a specific version date.
+
+    version_date is the ISO date string used in the _id, e.g. "2024-09-25".
+    """
+    return get_doc_by_id(client, db_name, collection_name,
+                         f"{section_number}_{version_date}")
+
+def get_dfars_version(client: MongoClient,
+                      db_name: str,
+                      collection_name: str,
+                      version_date: Any) -> List[Dict[str, Any]]:
+    """Retrieves every DFARS node belonging to a single version date.
+
+    version_date should be a datetime matching the stored BSON date field.
+    """
+    db = client[db_name]
+    collection = db[collection_name]
+    return list(collection.find({"version_date": version_date}))
+
+def get_dfars_section_history(client: MongoClient,
+                             db_name: str,
+                             collection_name: str,
+                             section_number: str) -> List[Dict[str, Any]]:
+    """Retrieves a DFARS node across every version date, oldest first."""
+    db = client[db_name]
+    collection = db[collection_name]
+    return list(
+        collection.find({"section_number": section_number})
+        .sort("version_date", ASCENDING)
+    )
+
+def create_dfars_indexes(client: MongoClient,
+                         db_name: str,
+                         collection_name: str) -> None:
+    """Creates the lookup and text indexes for the DFARS collection.
+
+    Run once after ingesting. Covers section-history lookups, per-version
+    fetches, and $text search over node text.
+    """
+    db = client[db_name]
+    collection = db[collection_name]
+    collection.create_index([("section_number", ASCENDING)])
+    collection.create_index([("version_date", DESCENDING)])
+    collection.create_index([("section.text", TEXT)])
