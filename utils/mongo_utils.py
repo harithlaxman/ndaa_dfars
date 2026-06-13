@@ -236,3 +236,41 @@ def create_dfars_indexes(
     collection.create_index([("version_date", DESCENDING)])
     collection.create_index([("section.text", TEXT)])
 
+
+def vector_search_dfars(
+    client: MongoClient,
+    db_name: str,
+    collection_name: str,
+    query: str,
+    version_date: Any,
+    limit: int = 10,
+    num_candidates: int = 100,
+    index_name: str = "dfars_vector_index",
+) -> List[Dict[str, Any]]:
+    """Semantic search over DFARS node text for one version.
+
+    Uses Atlas Vector Search auto-embedding: ``query`` is a text string that Atlas
+    embeds at search time (no ``model`` field — Atlas infers it from the index).
+    ``version_date`` should be a datetime matching the stored BSON date field, and
+    must be declared as a filter field in the ``dfars_vector_index`` definition.
+    Returns the matched documents with an added ``vector_search_score`` field,
+    ordered by descending relevance.
+    """
+    db = client[db_name]
+    collection = db[collection_name]
+
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": index_name,
+                "path": "section.text",
+                "query": query,
+                "filter": {"version_date": version_date},
+                "numCandidates": num_candidates,
+                "limit": limit,
+            }
+        },
+        {"$addFields": {"vector_search_score": {"$meta": "vectorSearchScore"}}},
+    ]
+    return list(collection.aggregate(pipeline))
+

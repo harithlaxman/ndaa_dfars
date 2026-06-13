@@ -64,6 +64,7 @@ def scrape_fr():
             "case_number": row.get("case_number"),
             "citation": row.get("citation"),
             "publication_date": row.get("publication_date"),
+            "effective_on": ";".join(d["effective_on"] for d in docs),
             "document_number": ";".join(d["document_number"] for d in docs),
             "dfars_case": ";".join(d["dfars_case"] for d in docs),
             "cfr_references": ";".join(
@@ -81,6 +82,7 @@ def scrape_fr():
             "case_number",
             "citation",
             "publication_date",
+            "effective_on",
             "document_number",
             "dfars_case",
             "cfr_references",
@@ -93,3 +95,6 @@ def scrape_fr():
         print(f"Saved to {OUTPUT_CSV}")
     else:
         print("\nNo documents fetched.")
+
+if __name__ == "__main__":
+    scrape_fr()

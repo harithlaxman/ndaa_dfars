@@ -1,26 +1,19 @@
-"""Regex-extract U.S. Code citations from each DFARS title-48 XML version.
+"""Regex-extract U.S. Code citations and attach them to each DFARS docs node.
 
-For every `data/DFARS/title-48_<date>.xml` file, write a matching
-`data/DFARS/usc_citations_<date>.json` with two top-level indexes:
+For every `data/DFARS/docs/title-48_<date>.json` file, scan each node's own `text`
+and write the distinct USC citations found back onto that node, in place, as a
+`usc_citations` list:
 
-    {
-      "section_to_citations": {
-        "225.7002": [
-          {"cite": "10 U.S.C. 4862(k)", "section": "10 U.S.C. 4862", "raw": "10 U.S.C. 4862(k)"},
-          ...
-        ]
-      },
-      "citation_to_sections": {
-        "10 U.S.C. 4862": ["225.7002", ...]
-      }
+    "225.7002": {
+      ...,
+      "usc_citations": [
+        {"cite": "10 U.S.C. 4862(k)", "section": "10 U.S.C. 4862", "raw": "10 U.S.C. 4862(k)"},
+        ...
+      ]
     }
 
-`section_to_citations` is keyed by DFARS node number (the same `N` identifiers
-used by `extract_hierarchy.py`); each value is the list of distinct USC citations
-found in that node's own text. `citation_to_sections` is the reverse lookup —
-keyed by the bare section-level USC citation, each value the sorted list of DFARS
-nodes that cite it — so "which DFARS sections cite a given USC section?" is one
-dictionary access.
+Every node gets the field (an empty list when it cites nothing), so the operation
+is idempotent — re-running overwrites the list rather than appending.
 
 Within a citation entry, `cite` is the citation as written (subsection parens and
 `note` kept), `section` is normalized to the bare section level (parens/`note`
@@ -38,6 +31,7 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from pathlib import Path
 
 from tqdm import tqdm
@@ -46,12 +40,18 @@ from dfars.extract_hierarchy import natural_key
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = _PROJECT_ROOT / "data" / "DFARS"
+DOCS_DIR = DATA_DIR / "docs"
 
 # DIV TYPEs whose `N` identifier should own the text directly inside them. These
 # match the hierarchy nodes built by extract_hierarchy.py; there is no separate
 # subsection type — subsections (e.g. 252.203-7000) are themselves TYPE="SECTION"
 # with the full hyphenated number as their `N`.
 TEXT_OWNING_TYPES = {"PART", "SUBPART", "SECTION"}
+
+# The bracketed Federal Register amendment history sits in its own CITA element at
+# the end of a section, e.g. "[80 FR 51745, Aug. 26, 2015, as amended at ...]". It
+# is pulled into its own field rather than left in the node's body text.
+CITA = "CITA"
 
 # A single section item: 2279, 2306a, 98h-1, 8502-8504, 40102(a)(4), 3204 note.
 # `(?!\d)` after each integer stops greedy `\d+` from backtracking into a partial
@@ -146,6 +146,10 @@ def node_texts(path: Path) -> dict[str, str]:
             texts.setdefault(key, []).append(s)
 
     def walk(elem: ET.Element, current_key: str | None) -> None:
+        # CITA holds the amendment history, exposed separately via
+        # node_amendment_history; keep it out of the body text entirely.
+        if elem.tag == CITA:
+            return
         if elem.attrib.get("TYPE") in TEXT_OWNING_TYPES and elem.attrib.get("N"):
             current_key = elem.attrib["N"]
         add(current_key, elem.text)
@@ -156,6 +160,61 @@ def node_texts(path: Path) -> dict[str, str]:
     root = ET.parse(path).getroot()
     walk(root, None)
     return {k: " ".join(v) for k, v in texts.items()}
+
+
+# One edit in an amendment history: a Federal Register citation followed by a date,
+# e.g. "80 FR 51745, Aug. 26, 2015". Extra pinpoint pages ("76 FR 6006, 6008, ...")
+# are ignored; the cite keeps the volume and starting page. The separator before
+# the date tolerates the comma/period/stray-">" forms that appear in the data.
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6, "june": 6,
+    "jul": 7, "july": 7, "aug": 8, "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+_EDIT_RE = re.compile(
+    r"(?P<cite>\d+\s+FR\s+\d+)(?:,\s*\d+)*"
+    r"[,.]?\s*>?\s*"
+    r"(?P<month>[A-Za-z]+)\.?\s+(?P<day>\d{1,2}),?\s+(?P<year>\d{4})"
+)
+
+
+def parse_amendment_history(raw: str) -> list[dict]:
+    """Parse a raw CITA string into an ordered list of {cite, date} edits.
+
+    The first edit is the original publication; the rest are amendments (and
+    redesignations) in the order they appear. `cite` is the "<vol> FR <page>"
+    citation; `date` is a datetime. Items without a recognizable date are skipped.
+    """
+    edits = []
+    for m in _EDIT_RE.finditer(raw):
+        month = _MONTHS.get(m.group("month").lower())
+        if month is None:
+            continue
+        edits.append({
+            "cite": re.sub(r"\s+", " ", m.group("cite")),
+            "date": datetime(int(m.group("year")), month, int(m.group("day"))),
+        })
+    return edits
+
+
+def node_amendment_history(path: Path) -> dict[str, str]:
+    """Map each DFARS node number to its raw CITA amendment-history string.
+
+    Only nodes that carry a CITA appear in the result. A node with more than one
+    CITA (rare) has them joined in document order.
+    """
+    history: dict[str, list[str]] = {}
+
+    def walk(elem: ET.Element, current_key: str | None) -> None:
+        if elem.attrib.get("TYPE") in TEXT_OWNING_TYPES and elem.attrib.get("N"):
+            current_key = elem.attrib["N"]
+        if elem.tag == CITA and current_key and elem.text and elem.text.strip():
+            history.setdefault(current_key, []).append(elem.text.strip())
+        for child in elem:
+            walk(child, current_key)
+
+    root = ET.parse(path).getroot()
+    walk(root, None)
+    return {k: " ".join(v) for k, v in history.items()}
 
 
 def build_reverse_index(section_to_citations: dict[str, list[dict]]) -> dict[str, list[str]]:
@@ -231,17 +290,42 @@ def selftest() -> None:
     assert sections("section 501(c)(3) of title 26") == ["26 U.S.C. 501"]
     assert cites("10 USC 2433(d)") == ["10 U.S.C. 2433(d)"]
     assert cites("eligible under 41 U.S.C. 8502-8504.") == ["41 U.S.C. 8502-8504"]
+
+    # Amendment-history parsing: original + amendments, in order, as datetimes.
+    def hist(raw: str) -> list[tuple[str, str]]:
+        return [(e["cite"], e["date"].strftime("%Y-%m-%d")) for e in parse_amendment_history(raw)]
+
+    assert hist("[80 FR 51745, Aug. 26, 2015, as amended at 80 FR 56930, Sept. 21, 2015]") == [
+        ("80 FR 51745", "2015-08-26"),
+        ("80 FR 56930", "2015-09-21"),
+    ]
+    # Pinpoint page kept out of the cite; "June"/"July" long forms.
+    assert hist("[76 FR 6006, 6008, Feb. 2, 2011, as amended at 74 FR 37647, July 29, 2009]") == [
+        ("76 FR 6006", "2011-02-02"),
+        ("74 FR 37647", "2009-07-29"),
+    ]
+    # Stray ">", a "." separator, and a "Redesignated at" connector all tolerated.
+    assert hist("[76 FR 52142, >Aug. 19, 2011]") == [("76 FR 52142", "2011-08-19")]
+    assert hist("[65 FR 14401. Mar. 16, 2000]") == [("65 FR 14401", "2000-03-16")]
+    assert hist("[65 FR 50144, Aug. 17, 2000. Redesignated at 75 FR 51417, Aug. 20, 2010]") == [
+        ("65 FR 50144", "2000-08-17"),
+        ("75 FR 51417", "2010-08-20"),
+    ]
     print("selftest: all assertions passed")
 
 
 def main() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    xml_files = sorted(DATA_DIR.glob("title-48_*.xml"))
-    for xml_path in tqdm(xml_files, desc="Extracting USC citations"):
-        result = parse_file(xml_path)
-        date = xml_path.stem.replace("title-48_", "")
-        out_path = DATA_DIR / f"usc_citations_{date}.json"
-        out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False))
+    """Annotate every docs node with its `usc_citations`, in place."""
+    doc_files = sorted(DOCS_DIR.glob("title-48_*.json"))
+    total = 0
+    for path in tqdm(doc_files, desc="Extracting USC citations"):
+        nodes = json.loads(path.read_text())
+        for node in nodes.values():
+            cites = extract_usc_citations(node.get("text", ""))
+            node["usc_citations"] = cites
+            total += len(cites)
+        path.write_text(json.dumps(nodes, indent=2, ensure_ascii=False))
+    print(f"Processed {len(doc_files)} files, added {total} USC citations.")
 
 
 if __name__ == "__main__":
