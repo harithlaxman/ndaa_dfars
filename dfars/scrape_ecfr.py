@@ -28,9 +28,9 @@ from tqdm import tqdm
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-INPUT_CSV = str(_PROJECT_ROOT / "data" / "fr_cases.csv")
-OUTPUT_DIR = _PROJECT_ROOT / "data"
-MANIFEST_CSV = OUTPUT_DIR / "dfars_diffs.csv"
+INPUT_CSV = str(_PROJECT_ROOT / "data" / "all_frcases.csv")
+OUTPUT_DIR = _PROJECT_ROOT / "data" / "DFARS" / "raw_xmls"
+MANIFEST_CSV = _PROJECT_ROOT / "data" / "dfars_diffs.csv"
 
 TITLE = "48"
 CHAPTER = "2"  # DFARS is chapter 2 of Title 48.
