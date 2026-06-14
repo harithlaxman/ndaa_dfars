@@ -7,60 +7,56 @@ at various stages of the 1:N NDAA -> DFARS drafting pipeline.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
-class MandatedChange(BaseModel):
-    """A single change mandated by the NDAA."""
-    id: str = Field(description="Change identifier, e.g. 'C1', 'C2'")
-    type: str = Field(
-        description="One of: new_requirement, modified_threshold, new_definition, repeal, amendment"
+class NodeAssignment(BaseModel):
+    """The changes routed to a single DFARS node."""
+    node_index: int = Field(
+        description="Index of the DFARS node, exactly as shown in the input list."
     )
-    description: str = Field(description="What the NDAA requires")
-    statutory_basis: str = Field(description="Specific section reference")
-    key_terms: list[str] = Field(default_factory=list)
-    relevant_text_snippet: str = Field(
-        default="", description="Brief quote from the NDAA"
+    change_numbers: list[int] = Field(
+        default_factory=list,
+        description="Numbers (from the numbered change list) of the changes this "
+        "node must implement. Empty if no change is routed to this node.",
     )
-
-
-class ChangeManifest(BaseModel):
-    """Structured change manifest from an NDAA section."""
-    mandated_changes: list[MandatedChange] = Field(default_factory=list)
-    definitions_introduced: list[str] = Field(default_factory=list)
-    authorities_amended: list[str] = Field(default_factory=list)
-    effective_date: str = Field(
-        default="", description="When the changes take effect"
-    )
-
-
-class SectionAssignment(BaseModel):
-    """Assignment of changes to a specific DFARS section."""
-    section_index: int
-    section_name: str = Field(default="")
-    role: str = Field(
-        description="One of: primary, secondary, cite-only, unaffected"
-    )
-    change_type: str = Field(
-        default="none",
-        description="One of: substantive, definitional, cross-reference, none",
-    )
-    hosts_definitions: bool = False
-    cites_definitions_from: Optional[str] = None
-    assigned_changes: list[str] = Field(default_factory=list)
-    delegation_notes: str = Field(default="")
-
-
-class CrossReference(BaseModel):
-    """A cross-reference between two DFARS sections."""
-    source_section: str = Field(description="Section that references another")
-    target_section: str = Field(description="Section being referenced")
-    note: str = Field(default="", description="Why this cross-reference exists")
 
 
 class DelegationPlan(BaseModel):
-    """Assignment plan mapping changes to DFARS sections."""
-    assignments: list[SectionAssignment] = Field(default_factory=list)
-    cross_references: list[CrossReference] = Field(default_factory=list)
+    """Routing plan: which numbered changes each DFARS node must implement."""
+    assignments: list[NodeAssignment] = Field(default_factory=list)
+
+
+class SectionDraft(BaseModel):
+    """The revised text for a single DFARS section."""
+    revised_text: str = Field(
+        description="The complete text of the section after applying the "
+        "proposed changes, preserving any existing text the NDAA does not "
+        "require changing. Regulatory text only -- no diff tags, no commentary."
+    )
+
+
+class SectionCorrection(BaseModel):
+    """Cross-section corrections to apply to one DFARS section's draft."""
+    section: str = Field(
+        description="The DFARS section number, exactly as shown in the input."
+    )
+    corrections: list[str] = Field(
+        default_factory=list,
+        description="Specific, minimal corrections this section's draft needs for "
+        "cross-section consistency. Empty if the draft is already consistent.",
+    )
+
+
+class ReconcilePlan(BaseModel):
+    """Per-section correction directive from the reconciliation review step.
+
+    The coordinator stage of per-section reconciliation: it identifies cross-
+    section issues and routes the specific corrections each section needs, but
+    drafts nothing. A separate per-section step applies the corrections.
+    """
+    corrections: list[SectionCorrection] = Field(default_factory=list)
+    issues: str = Field(
+        default="",
+        description="Brief summary of the cross-section issues found.",
+    )

@@ -1,12 +1,13 @@
 """
 Evaluation pipeline for the 1:N NDAA -> DFARS drafting framework.
 
-Takes the results JSON produced by agent.py and evaluates each section draft
-against the ground-truth "after" text using:
-  1. BLEU score (sacrebleu, sentence-level)
-  2. Section-level LLM-as-a-judge (4-dimension anchored rubric, 1-5 scale,
-     delta-focused: the judge sees the "before" text so it scores the changes
-     rather than the shared boilerplate)
+Takes the results JSON produced by agent.py and evaluates each NDAA group's
+drafts as a whole (all drafted nodes vs all ground-truth nodes) using:
+  1. BLEU score (sacrebleu, all drafts vs all ground truth, concatenated)
+  2. Whole-draft LLM-as-a-judge (one call per NDAA group, 4-dimension anchored
+     rubric, 1-5 scale, delta-focused: the judge sees the "before" text so it
+     scores the changes rather than the shared boilerplate, aggregated over all
+     affected sections)
   3. Group-level LLM-as-a-judge (one call per NDAA group, scoring the
      cross-section coordination that the 1:N architecture is supposed to buy:
      definition placement, consistency, cross-references, delegation)
@@ -14,23 +15,22 @@ against the ground-truth "after" text using:
 Usage (from the repo root)
 --------------------------
   # Evaluate the latest pipeline results in data/results
-  python pipeline/agents/framework2/eval.py
+  python pipeline/agents/framework2/eval_whole.py
 
   # Use a specific results file
-  python pipeline/agents/framework2/eval.py --input data/results/pipeline_1n_results.json
+  python pipeline/agents/framework2/eval_whole.py --input data/results/pipeline_1n_results.json
 
   # Re-run only the judges (skip BLEU, keep existing scores)
-  python pipeline/agents/framework2/eval.py --rejudge data/results/eval_1n_results.json
+  python pipeline/agents/framework2/eval_whole.py --rejudge data/results/eval_1n_results.json
 
   # Limit to N NDAA groups
-  python pipeline/agents/framework2/eval.py --limit 5
+  python pipeline/agents/framework2/eval_whole.py --limit 5
 
   # Only evaluate sections from single-NDAA document numbers
-  python pipeline/agents/framework2/eval.py --single-ndaa
+  python pipeline/agents/framework2/eval_whole.py --single-ndaa
 """
 
 import argparse
-import copy
 import json
 import os
 import re
@@ -55,10 +55,7 @@ sys.path.insert(0, str(_PIPELINE_DIR))
 
 RESULTS_DIR = _DATA_DIR / "results"
 
-from agents.framework2.utils import (  # noqa: E402
-    expected_section_units,
-    get_single_ndaa_allowed,
-)
+from agents.framework2.utils import get_single_ndaa_allowed  # noqa: E402
 
 
 def latest_results_file() -> Path:
@@ -189,48 +186,39 @@ def _mean_scores(scores: dict) -> Optional[float]:
 
 
 # ---------------------------------------------------------------------------
-# Section-level LLM-as-a-Judge
+# Whole-draft LLM-as-a-Judge
 # ---------------------------------------------------------------------------
 
 JUDGE_SYSTEM = """You are an expert evaluator for regulatory text drafting systems.
 You compare a system's proposed DFARS revision against the official ground-truth
 revision and score how well the system captured the required changes."""
 
-SECTION_JUDGE_PROMPT = """\
+WHOLE_JUDGE_PROMPT = """\
 You are evaluating a system that reads an NDAA provision and the current DFARS
-text, then proposes a revised DFARS section.
+text, then proposes revised DFARS text across ALL the sections that provision
+affects.
 
-Below you have:
+You are scoring the system's WHOLE output for this NDAA provision at once — all
+drafted nodes against all ground-truth nodes — not one section at a time. For
+each affected section below you have:
 1. The DFARS text BEFORE the change. Both the system and the official drafters
    started from this exact text.
 2. The official DFARS text AFTER the change (ground truth).
 3. The system's proposed draft (clean, with changes applied).
 
-Score the DELTA, not the document: first work out what the ground truth changed
-(BEFORE vs AFTER), then check whether the draft made those same changes
-(BEFORE vs DRAFT). Text that is identical in all three is shared boilerplate
-and is not evidence of quality.
+Score the DELTA, not the documents: first work out what the ground truth changed
+(BEFORE vs AFTER) across all sections, then check whether the drafts made those
+same changes (BEFORE vs DRAFT). Text that is identical in all three is shared
+boilerplate and is not evidence of quality. Aggregate your judgement over the
+whole set of sections.
 
 ---
 
-DFARS BEFORE (common starting text):
-\"\"\"
-{before}
-\"\"\"
-
-DFARS AFTER (ground truth):
-\"\"\"
-{after}
-\"\"\"
-
-SYSTEM DRAFT (proposed revision):
-\"\"\"
-{draft}
-\"\"\"
+{sections_block}
 
 ---
 
-Score each dimension on a 1-5 scale:
+Score each dimension on a 1-5 scale, considering all sections together:
 
 1. **change_completeness** — Did the draft make every change the ground truth made?
    5 = every ground-truth change is present in the draft
@@ -262,23 +250,30 @@ Score each dimension on a 1-5 scale:
    3 = right content placed under wrong numbering or in the wrong paragraph
    1 = structure substantially broken or reorganized
 
-In `reasoning`, name the specific changes that were captured, missed, or
-invented.
+In `reasoning`, name the specific changes (and the sections they belong to)
+that were captured, missed, or invented.
 """
 
 
-def judge_draft(before: str, after: str, draft: str) -> dict:
-    """Judge a single section draft against ground truth (delta-focused)."""
-    llm = _get_llm(temperature=0.0).with_structured_output(SectionJudgement)
-
-    prompt = SECTION_JUDGE_PROMPT.format(
-        before=before if before.strip() else "(not available)",
-        after=after,
-        draft=draft,
+def judge_whole_draft(drafts: list[dict]) -> dict:
+    """Judge all section drafts for one NDAA group as a whole, against the
+    full ground truth (delta-focused)."""
+    sections_block = "\n".join(
+        GROUP_SECTION_TEMPLATE.format(
+            section=d.get("section", "?"),
+            role=_routing_label(d),
+            before=d.get("before", "") or "(not available)",
+            after=d.get("after", ""),
+            draft=d.get("draft_clean", ""),
+        )
+        for d in drafts
     )
+
+    llm = _get_llm(temperature=0.0).with_structured_output(SectionJudgement)
     result: SectionJudgement = llm.invoke([
         SystemMessage(content=JUDGE_SYSTEM),
-        HumanMessage(content=prompt),
+        HumanMessage(content=WHOLE_JUDGE_PROMPT.format(
+            sections_block=sections_block)),
     ])
 
     scores = {k: getattr(result, k) for k in SECTION_SCORE_KEYS}
@@ -328,7 +323,7 @@ In `reasoning`, cite the specific sections behind each score.
 """
 
 GROUP_SECTION_TEMPLATE = """\
-=== SECTION {section} (assigned role: {role}) ===
+=== SECTION {section} (routing: {role}) ===
 
 BEFORE:
 \"\"\"
@@ -351,12 +346,23 @@ def _normalize_ws(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _routing_label(d: dict) -> str:
+    """Short label of how delegation routed changes to this node, for the judge.
+
+    Framework2 drafts carry `assigned_changes`; baseline drafts do not.
+    """
+    if "assigned_changes" not in d:
+        return "?"
+    n = len(d["assigned_changes"])
+    return f"{n} change(s) routed" if n else "no changes routed"
+
+
 def judge_group(drafts: list[dict]) -> dict:
     """Judge cross-section coordination for one NDAA group."""
     sections_block = "\n".join(
         GROUP_SECTION_TEMPLATE.format(
             section=d.get("section", "?"),
-            role=d.get("role", "?"),
+            role=_routing_label(d),
             before=d.get("before", "") or "(not available)",
             after=d.get("after", ""),
             draft=d.get("draft_clean", ""),
@@ -374,12 +380,14 @@ def judge_group(drafts: list[dict]) -> dict:
     scores = {k: getattr(result, k) for k in GROUP_SCORE_KEYS}
     scores["overall"] = _mean_scores(scores)
 
-    # Deterministic delegation check: sections the agent marked "unaffected"
-    # whose ground truth actually changed.
-    unaffected_but_changed = [
+    # Deterministic delegation check: nodes the router left with no changes (so
+    # they were emitted unchanged) whose ground truth actually changed -- i.e.
+    # routing misses. Only applies to framework2 drafts (which carry the
+    # `assigned_changes` key); baseline drafts lack it and are not flagged.
+    missed_routing = [
         d["section"]
         for d in drafts
-        if d.get("role") == "unaffected"
+        if "assigned_changes" in d and not d["assigned_changes"]
         and d.get("before") and d.get("after")
         and _normalize_ws(d["before"]) != _normalize_ws(d["after"])
     ]
@@ -387,7 +395,7 @@ def judge_group(drafts: list[dict]) -> dict:
     return {
         "scores": scores,
         "reasoning": result.reasoning,
-        "unaffected_but_changed": unaffected_but_changed,
+        "missed_routing": missed_routing,
     }
 
 
@@ -436,8 +444,8 @@ def backfill_before(results: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 def filter_single_ndaa(results: list[dict]) -> list[dict]:
-    """Keep only section drafts whose DFARS sections belong to document numbers
-    with exactly one NDAA citation in doc_to_ndaa.csv."""
+    """Keep only section drafts whose DFARS sections come from FR cases that
+    implement exactly one NDAA section (see utils.get_single_ndaa_allowed)."""
     allowed = get_single_ndaa_allowed()
 
     filtered = []
@@ -458,97 +466,6 @@ def filter_single_ndaa(results: list[dict]) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Penalize missing sections (recall)
-# ---------------------------------------------------------------------------
-# The judges only score sections a run actually emitted, so a run that drops a
-# required section (e.g. a whole group that errored on a token-limit truncation)
-# is never penalized -- its hardest sections silently vanish instead of scoring
-# zero. This injects a floor-scored eval entry for every required section a run
-# failed to emit, so recall failures count against the run.
-
-# A section the run never produced: nothing right (dims=1), nothing matched (BLEU
-# 0). We do NOT leave substantive_correctness null or edit_minimality high, which
-# would let a no-show dodge the average / score as "made no bad edits".
-MISSING_PENALTY = {
-    "bleu": 0.0,
-    "judge": {
-        "scores": {
-            "change_completeness": 1,
-            "edit_minimality": 1,
-            "substantive_correctness": 1,
-            "structural_fidelity": 1,
-            "overall": 1.0,
-        },
-        "reasoning": "Section required by the ground truth but not produced by "
-                     "the run (e.g. dropped group / truncated output); scored as "
-                     "a total miss.",
-    },
-}
-
-
-def penalize_missing(results: list[dict], single_ndaa: bool = True) -> list[dict]:
-    """Inject floor-scored eval entries for required sections a run didn't emit.
-
-    Compares each run against the canonical expected single-NDAA section set
-    (utils.expected_section_units) and, for every expected section with no draft,
-    appends a `missing` entry carrying MISSING_PENALTY. Errored or wholly-absent
-    groups are (re)created so their dropped sections are penalized too. Mutates
-    and returns `results`. No LLM calls -- penalties are deterministic.
-    """
-    expected = expected_section_units(single_ndaa=single_ndaa)
-    by_key = {
-        (str(r["ndaa_year"]), str(r["ndaa_section"])): r
-        for r in results
-        if "ndaa_year" in r and "ndaa_section" in r
-    }
-
-    n_pen = 0
-    for key, secs in expected.items():
-        r = by_key.get(key)
-        emitted = set()
-        if r is not None and "error" not in r:
-            emitted = {d.get("section") for d in r.get("section_drafts", [])}
-
-        missing = [s for s in secs if s not in emitted]
-        if not missing:
-            continue
-
-        pen_entries = [{
-            "section": s,
-            "assigned_changes": [],
-            "draft_clean": "",
-            "before": secs[s]["before"],
-            "after": secs[s]["after"],
-            "missing": True,
-            "eval": copy.deepcopy(MISSING_PENALTY),
-        } for s in missing]
-        n_pen += len(pen_entries)
-
-        if r is None:
-            # Group never reached the eval at all -> create it, all-missing.
-            new_r = {
-                "ndaa_year": key[0],
-                "ndaa_section": key[1],
-                "section_drafts": pen_entries,
-                "group_eval": {"skipped": "group not produced (penalized)"},
-            }
-            results.append(new_r)
-            by_key[key] = new_r
-        elif "error" in r:
-            # Errored group (no drafts) -> attach penalties, keep the error note.
-            r["section_drafts"] = pen_entries
-            r.setdefault(
-                "group_eval", {"skipped": "group errored (penalized)"})
-        else:
-            # Partial group -> append the sections it skipped.
-            r.setdefault("section_drafts", []).extend(pen_entries)
-
-    print(f"Penalized {n_pen} missing required section(s) across "
-          f"{len(expected)} expected NDAA group(s)")
-    return results
-
-
-# ---------------------------------------------------------------------------
 # Evaluation runner
 # ---------------------------------------------------------------------------
 
@@ -565,77 +482,67 @@ def _judge_group_for_result(r: dict, eval_drafts: list[dict]) -> Optional[dict]:
     except Exception as exc:
         print(f"  Group judge error: {exc}")
         return {"scores": {}, "reasoning": f"Group judge error: {exc}",
-                "unaffected_but_changed": []}
+                "missed_routing": []}
 
 
 def evaluate_results(results: list[dict], skip_bleu: bool = False) -> list[dict]:
-    """Evaluate each section draft, then each NDAA group, in the results."""
+    """Evaluate each NDAA group's drafts as a whole (all drafted nodes vs all
+    ground-truth nodes), then the cross-section coordination."""
     backfill_before(results)
 
     evaluated = []
-    total_sections = sum(
-        len(r.get("section_drafts", []))
-        for r in results
-        if "error" not in r
-    )
-    section_idx = 0
+    groups = [r for r in results if "error" not in r]
+    total_groups = len(groups)
+    group_idx = 0
 
     for r in results:
         if "error" in r:
             evaluated.append(r)
             continue
 
-        eval_drafts = []
-        for d in r.get("section_drafts", []):
-            section_idx += 1
-            section = d.get("section", "?")
-            label = (
-                f"[{section_idx}/{total_sections}] "
-                f"NDAA {r['ndaa_year']} s{r['ndaa_section']} -> {section}"
-            )
+        group_idx += 1
+        drafts = r.get("section_drafts", [])
+        # Only sections that actually have ground truth can be judged.
+        judgeable = [d for d in drafts if d.get("after")]
+        label = (
+            f"[{group_idx}/{total_groups}] "
+            f"NDAA {r['ndaa_year']} s{r['ndaa_section']} "
+            f"({len(judgeable)}/{len(drafts)} sections)"
+        )
 
-            draft_clean = d.get("draft_clean", "")
-            before = d.get("before", "")
-            after = d.get("after", "")
-
-            if not after:
-                print(f"  {label} — no ground truth, skipping eval")
-                eval_drafts.append({**d, "eval": {"skipped": "no ground truth"}})
-                continue
-
-            # BLEU
-            if skip_bleu:
-                bleu = d.get("eval", {}).get("bleu")
-                if bleu is None:
-                    bleu = compute_bleu(draft_clean, after)
-            else:
-                bleu = compute_bleu(draft_clean, after)
-            print(f"  {label}  BLEU={bleu:.1f}", end="")
-
-            # Section judge
-            try:
-                judgement = judge_draft(before, after, draft_clean)
-                overall = judgement["scores"].get("overall", "?")
-                print(f"  Judge={overall}")
-            except Exception as exc:
-                print(f"  Judge error: {exc}")
-                judgement = {
-                    "scores": {},
-                    "reasoning": f"Judge error: {exc}",
-                }
-
-            eval_drafts.append({
-                **d,
-                "eval": {
-                    "bleu": bleu,
-                    "judge": judgement,
-                },
+        if not judgeable:
+            print(f"  {label} — no ground truth, skipping eval")
+            evaluated.append({
+                **r,
+                "whole_eval": {"skipped": "no ground truth"},
+                "group_eval": _judge_group_for_result(r, drafts),
             })
+            continue
+
+        # Whole-draft BLEU: all drafts vs all ground truth, concatenated.
+        draft_all = "\n\n".join(d.get("draft_clean", "") for d in judgeable)
+        after_all = "\n\n".join(d.get("after", "") for d in judgeable)
+        if skip_bleu:
+            bleu = r.get("whole_eval", {}).get("bleu")
+            if bleu is None:
+                bleu = compute_bleu(draft_all, after_all)
+        else:
+            bleu = compute_bleu(draft_all, after_all)
+        print(f"  {label}  BLEU={bleu:.1f}", end="")
+
+        # Whole-draft judge
+        try:
+            judgement = judge_whole_draft(judgeable)
+            overall = judgement["scores"].get("overall", "?")
+            print(f"  Judge={overall}")
+        except Exception as exc:
+            print(f"  Judge error: {exc}")
+            judgement = {"scores": {}, "reasoning": f"Judge error: {exc}"}
 
         evaluated.append({
             **r,
-            "section_drafts": eval_drafts,
-            "group_eval": _judge_group_for_result(r, eval_drafts),
+            "whole_eval": {"bleu": bleu, "judge": judgement},
+            "group_eval": _judge_group_for_result(r, drafts),
         })
 
     return evaluated
@@ -654,20 +561,20 @@ def rejudge_results(results: list[dict]) -> list[dict]:
 def print_summary(results: list[dict]) -> None:
     """Print aggregate evaluation metrics."""
     all_evals = [
-        d["eval"]
+        r["whole_eval"]
         for r in results if "error" not in r
-        for d in r.get("section_drafts", [])
-        if "eval" in d and "skipped" not in d["eval"]
+        if isinstance(r.get("whole_eval"), dict)
+        and "skipped" not in r["whole_eval"]
     ]
 
     if not all_evals:
-        print("\nNo evaluated sections found.")
+        print("\nNo evaluated groups found.")
         return
 
     print(f"\n{'='*72}")
     print("  EVALUATION SUMMARY")
     print(f"{'='*72}")
-    print(f"  Sections evaluated: {len(all_evals)}")
+    print(f"  NDAA groups evaluated (whole-draft): {len(all_evals)}")
 
     # BLEU
     bleu_scores = [e["bleu"] for e in all_evals if "bleu" in e]
@@ -677,7 +584,7 @@ def print_summary(results: list[dict]) -> None:
               f"min={min(bleu_scores):.1f}  max={max(bleu_scores):.1f}  "
               f"n={len(bleu_scores)}")
 
-    # Section judge scores
+    # Whole-draft judge scores
     for key in SECTION_SCORE_KEYS + ["overall"]:
         values = [
             e["judge"]["scores"][key]
@@ -713,28 +620,27 @@ def print_summary(results: list[dict]) -> None:
                       f"min={min(values):.1f}  max={max(values):.1f}  "
                       f"n={len(values)}")
         flagged = [s for g in group_evals
-                   for s in g.get("unaffected_but_changed", [])]
+                   for s in g.get("missed_routing", [])]
         if flagged:
-            print(f"\n  Sections marked 'unaffected' whose ground truth "
+            print(f"\n  Sections with no changes routed whose ground truth "
                   f"changed ({len(flagged)}):")
             for s in flagged:
                 print(f"    - {s}")
 
-    # Per-section overview
-    print(f"\n  {'NDAA':<20} {'Section':<35} {'BLEU':>6} {'Judge':>6}")
-    print(f"  {'-'*20} {'-'*35} {'-'*6} {'-'*6}")
+    # Per-group overview
+    print(f"\n  {'NDAA':<20} {'Sections':>9} {'BLEU':>6} {'Judge':>6}")
+    print(f"  {'-'*20} {'-'*9} {'-'*6} {'-'*6}")
     for r in results:
         if "error" in r:
             continue
-        for d in r.get("section_drafts", []):
-            ev = d.get("eval", {})
-            if "skipped" in ev:
-                continue
-            ndaa = f"{r['ndaa_year']} s{r['ndaa_section']}"
-            sec = (d.get("section") or "")[:35]
-            bleu = ev.get("bleu", 0)
-            overall = ev.get("judge", {}).get("scores", {}).get("overall", "?")
-            print(f"  {ndaa:<20} {sec:<35} {bleu:>6.1f} {overall:>6}")
+        ev = r.get("whole_eval", {})
+        if not isinstance(ev, dict) or "skipped" in ev:
+            continue
+        ndaa = f"{r['ndaa_year']} s{r['ndaa_section']}"
+        n_sec = sum(1 for d in r.get("section_drafts", []) if d.get("after"))
+        bleu = ev.get("bleu", 0)
+        overall = ev.get("judge", {}).get("scores", {}).get("overall", "?")
+        print(f"  {ndaa:<20} {n_sec:>9} {bleu:>6.1f} {overall:>6}")
 
 
 # ---------------------------------------------------------------------------
@@ -752,7 +658,7 @@ def main() -> None:
                              "pipeline_1n_results*.json in data/results)")
     parser.add_argument("--output", type=str, default=None,
                         help="Output path (default: data/results/"
-                             "eval_1n_results_<timestamp>.json)")
+                             "eval_whole_1n_results_<timestamp>.json)")
     parser.add_argument("--limit", type=int, default=None,
                         help="Max NDAA groups to evaluate")
     parser.add_argument("--rejudge", type=str, default=None,
@@ -764,7 +670,7 @@ def main() -> None:
 
     from datetime import datetime
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = args.output or str(RESULTS_DIR / f"eval_1n_results_{ts}.json")
+    out_path = args.output or str(RESULTS_DIR / f"eval_whole_1n_results_{ts}.json")
 
     if args.rejudge:
         print(f"Re-judging from {args.rejudge} ...")
@@ -788,10 +694,6 @@ def main() -> None:
             results = results[:args.limit]
         print(f"  {len(results)} NDAA groups, evaluating ...")
         results = evaluate_results(results)
-
-    # Always penalize required single-NDAA sections a run failed to emit, so
-    # recall failures (dropped/errored groups) score zero instead of vanishing.
-    results = penalize_missing(results, single_ndaa=True)
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:

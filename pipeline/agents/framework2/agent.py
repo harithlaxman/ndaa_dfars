@@ -5,13 +5,14 @@ Three-phase LangGraph pipeline that processes one NDAA section against
 N DFARS sections simultaneously:
 
   Phase 1 -- Delegation (once per NDAA group)
-    delegation: assign the pre-computed change manifest to DFARS sections
+    delegation: route each numbered change to the DFARS node(s) that implement it
 
-  Phase 2 -- Per-Section Drafting (PARALLEL per DFARS section via Send())
-    Each section gets its own subagent: change_list -> drafting
+  Phase 2 -- Per-Node Drafting (PARALLEL per DFARS node via Send())
+    Each node implements only the changes routed to it -- one LLM call
 
-  Phase 3 -- Reconciliation (once per NDAA group)
-    Reviews all N drafts together for consistency
+  Phase 3 -- Reconciliation (mode-selectable; see build_graph)
+    "off"         -- skip; per-node drafts are final
+    "per_section" -- coordinator routes corrections, applied per section in parallel
 
 Inputs:
   - data/dfars_diff_all.json: per NDAA (year, section), the implementing DFARS
@@ -21,6 +22,10 @@ Inputs:
     drafting unit carries full-section context.
   - pipeline/out/manifests_fr_cases.json: the pre-computed change manifest per NDAA
     section (from pipeline/fetch_context.py). Sections without one are skipped.
+    Surfaced to the prompts as a compact change list (change_type, description,
+    applies_to only).
+  - Mongo (db "ndaa_dfars", collection "ndaas"): the NDAA section's full statutory
+    text, fed to the prompts alongside the change list. Read-only.
 """
 
 from __future__ import annotations
@@ -28,7 +33,6 @@ from __future__ import annotations
 import json
 import operator
 import os
-import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -49,8 +53,16 @@ _REPO_ROOT = _FRAMEWORK_DIR.parents[2]      # ndaa_dfars/ -- for `utils.*` and d
 sys.path.insert(0, str(_PIPELINE_DIR))
 sys.path.insert(0, str(_REPO_ROOT))
 
-from agents.framework2.schemas import DelegationPlan  # noqa: E402
-from agents.framework2.utils import get_single_ndaa_allowed  # noqa: E402
+from agents.framework2.schemas import (  # noqa: E402
+    DelegationPlan,
+    ReconcilePlan,
+    SectionDraft,
+)
+from agents.framework2.utils import _section_key, get_single_ndaa_allowed  # noqa: E402
+from utils.mongo_utils import getMongoClient, get_doc_by_year_section  # noqa: E402
+
+DB = "ndaa_dfars"
+NDAAS = "ndaas"
 
 _DATA_DIR = _REPO_ROOT / "data"
 # Per NDAA section: the implementing DFARS case(s) and the before/after text of
@@ -66,7 +78,13 @@ _DRAFTING_GUIDE = _DRAFTING_GUIDE_PATH.read_text(encoding="utf-8")
 # ---------------------------------------------------------------------------
 
 
-def _get_llm(temperature: float = 0.0) -> AzureChatOpenAI:
+def _get_llm(temperature: float = 0.0, max_tokens: int = 4096) -> AzureChatOpenAI:
+    # The 4096 default suits compact outputs (e.g. the delegation routing plan,
+    # which is just node->change-number lists). Calls that emit full regulatory
+    # text pass a larger budget explicitly: per-section drafting returns one
+    # section's complete revised text (some exceed 4096 -> truncation fails
+    # structured-output parsing and drops the whole group), and reconciliation
+    # returns the full text of every section in one call.
     return AzureChatOpenAI(
         azure_deployment="gpt-4.1",
         azure_endpoint=os.environ.get(
@@ -77,39 +95,8 @@ def _get_llm(temperature: float = 0.0) -> AzureChatOpenAI:
         ),
         api_version="2025-03-01-preview",
         temperature=temperature,
-        max_tokens=4096,
+        max_tokens=max_tokens,
     )
-
-
-# ---------------------------------------------------------------------------
-# Draft post-processing
-# ---------------------------------------------------------------------------
-
-_RE_REMOVED = re.compile(r"<removed>.*?</removed>", re.DOTALL)
-_RE_ADDED = re.compile(r"<added>(.*?)</added>", re.DOTALL)
-_RE_SUMMARY = re.compile(r"\*{0,2}\s*Summary of Changes\s*\*{0,2}.*", re.DOTALL | re.IGNORECASE)
-_RE_CODE_FENCE = re.compile(r"^```[a-z]*\s*$", re.MULTILINE)
-_RE_TRIPLE_QUOTE = re.compile(r'^"{3}\s*$', re.MULTILINE)
-_RE_HORIZ_RULE = re.compile(r"^-{3,}\s*$", re.MULTILINE)
-_RE_PREFIX_LINE = re.compile(
-    r"^(Revised DFARS Text|DFARS Text|Output|Revised Text)\s*:\s*$",
-    re.MULTILINE | re.IGNORECASE,
-)
-
-
-def _resolve_draft(tagged: str) -> str:
-    """Strip diff tags from a draft, keeping added text and removing deleted text."""
-    text = _RE_REMOVED.sub("", tagged)
-    text = _RE_ADDED.sub(r"\1", text)
-    # Strip formatting artifacts
-    text = _RE_SUMMARY.sub("", text)
-    text = _RE_CODE_FENCE.sub("", text)
-    text = _RE_TRIPLE_QUOTE.sub("", text)
-    text = _RE_HORIZ_RULE.sub("", text)
-    text = _RE_PREFIX_LINE.sub("", text)
-    # Collapse runs of blank lines left by removals
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -117,20 +104,32 @@ def _resolve_draft(tagged: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _section_key(change: dict) -> str:
-    """Roll a changed DFARS node up to its drafting unit.
+def _render_change(i: int, m: dict) -> str:
+    """Render a single manifest change, numbered `i`."""
+    return (
+        f"{i}. [{m.get('change_type', '')}] {m.get('description', '')}\n"
+        f"   Applies to: {m.get('applies_to', '')}"
+    )
 
-    - part 252 clauses (e.g. 252.204-7012) stay whole -- they are self-contained
-      provisions/clauses, not subsections of a prescriptive section.
-    - a SECTION node (or any number without a '-' suffix) is its own unit.
-    - a SUBSECTION (e.g. 236.606-70) rolls up to its enclosing SECTION (236.606).
+
+def _change_items(manifests: list[dict]) -> list[str]:
+    """One rendered change string per manifest item, 1-indexed in the text.
+
+    `_change_items(...)[k]` is the change shown as number `k + 1` in the change
+    list -- delegation routes by these numbers, and route_to_sections resolves a
+    node's assigned numbers back to these strings.
     """
-    number = change["number"]
-    if change.get("part") == "252":
-        return number
-    if change.get("type") == "SECTION" or "-" not in number:
-        return number
-    return number.rsplit("-", 1)[0]
+    return [_render_change(i, m) for i, m in enumerate(manifests, 1)]
+
+
+def _format_change_list(manifests: list[dict]) -> str:
+    """Render the manifest as a compact, numbered change list.
+
+    Only the fields the drafting stages need are surfaced: change_type,
+    description, and applies_to.
+    """
+    items = _change_items(manifests)
+    return "\n".join(items) if items else "(no changes inferred)"
 
 
 def _group_sections(changes: list[dict]) -> list[dict]:
@@ -197,58 +196,72 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
     with open(_MANIFEST_FILE) as f:
         manifests = {s["ndaa_id"]: s for s in json.load(f).get("sections", [])}
 
+    client = getMongoClient()
     groups: list[dict] = []
-    for entry in diff.get("sections", []):
-        year = str(entry["ndaa_year"])
-        section = str(entry["ndaa_section"])
-        ndaa_id = f"{year}_{section}"
+    try:
+        for entry in diff.get("sections", []):
+            year = str(entry["ndaa_year"])
+            section = str(entry["ndaa_section"])
+            ndaa_id = f"{year}_{section}"
 
-        manifest_entry = manifests.get(ndaa_id)
-        if manifest_entry is None:
-            print(f"  skip NDAA {year} s{section}: no pre-computed manifest")
-            continue
-
-        changes: list[dict] = []
-        for case in entry.get("cases", []):
-            changes.extend(case.get("changes", []))
-        if not changes:
-            continue
-
-        dfars_secs = _group_sections(changes)
-
-        if allowed is not None:
-            allowed_secs = allowed.get((year, section))
-            if not allowed_secs:
+            manifest_entry = manifests.get(ndaa_id)
+            if manifest_entry is None:
+                print(f"  skip NDAA {year} s{section}: no pre-computed manifest")
                 continue
-            dfars_secs = [
-                s for s in dfars_secs
-                if any(a in s["section"] for a in allowed_secs)
-            ]
 
-        if not dfars_secs:
-            continue
-        if len(dfars_secs) > 25:
-            print(f"  skip NDAA {year} s{section}: {len(dfars_secs)} DFARS sections (>25)")
-            continue
+            changes: list[dict] = []
+            for case in entry.get("cases", []):
+                changes.extend(case.get("changes", []))
+            if not changes:
+                continue
 
-        # The manifest list is injected verbatim as the change_manifest state;
-        # delegation/drafting read it as embedded JSON text.
-        change_manifest = json.dumps(
-            manifest_entry.get("manifests", []), ensure_ascii=False
-        )
+            dfars_secs = _group_sections(changes)
 
-        # Split into batches of 5 (rate-limit safety on the parallel fan-out)
-        for batch_start in range(0, len(dfars_secs), 5):
-            batch = dfars_secs[batch_start:batch_start + 5]
+            if allowed is not None:
+                allowed_secs = allowed.get((year, section))
+                if not allowed_secs:
+                    continue
+                dfars_secs = [
+                    s for s in dfars_secs
+                    if any(a in s["section"] for a in allowed_secs)
+                ]
+
+            if not dfars_secs:
+                continue
+            if len(dfars_secs) > 25:
+                print(f"  skip NDAA {year} s{section}: {len(dfars_secs)} DFARS sections (>25)")
+                continue
+
+            # Full NDAA statutory text (read-only from Mongo) feeds the prompts
+            # alongside the compact change list.
+            ndaa_doc = get_doc_by_year_section(client, DB, NDAAS, year, section)
+            if ndaa_doc is None:
+                print(f"  skip NDAA {year} s{section}: not found in Mongo '{NDAAS}'")
+                continue
+            ndaa_section = ndaa_doc.get("section", {})
+
+            # Compact change list: change_type, description, applies_to only.
+            # `change_items` keeps the per-change strings addressable by number so
+            # delegation can route them and drafting can resolve a node's subset.
+            manifest_items = manifest_entry.get("manifests", [])
+            change_list = _format_change_list(manifest_items)
+            change_items = _change_items(manifest_items)
+
+            # One group per NDAA: all affected DFARS sections stay together so
+            # delegation sees the full set and drafting fans out over every node.
             groups.append({
                 "ndaa": {
                     "year": year,
                     "section": section,
-                    "header": manifest_entry.get("section_heading", ""),
+                    "header": ndaa_section.get("heading", manifest_entry.get("section_heading", "")),
+                    "text": ndaa_section.get("text", ""),
                 },
-                "change_manifest": change_manifest,
-                "dfars_sections": batch,
+                "change_list": change_list,
+                "change_items": change_items,
+                "dfars_sections": dfars_secs,
             })
+    finally:
+        client.close()
 
     return groups
 
@@ -261,17 +274,28 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
 class PipelineState(TypedDict):
     # -- inputs --
     ndaa_header: str
+    ndaa_text: str         # full NDAA statutory text (from Mongo)
     dfars_sections: list[dict]  # [{section, part, subpart, before, after}]
-    change_manifest: str   # JSON -- pre-computed manifest injected by the loader
+    change_list: str       # compact numbered change list (type/description/applies_to)
+    change_items: list[str]  # per-change strings, addressable by change number
 
-    # -- phase 1: analysis --
-    delegation_plan: str   # JSON
+    # -- phase 1: delegation (change -> node routing) --
+    delegation_plan: str   # JSON: {assignments: [{node_index, change_numbers}]}
 
     # -- phase 2 (fan-out via Send, merged via operator.add) --
-    section_drafts: Annotated[list[dict], operator.add]  # [{section, role, proposed_changes, draft}]
+    section_drafts: Annotated[list[dict], operator.add]  # [{section, assigned_changes, draft_clean}]
 
     # -- phase 3 --
-    final_output: str
+    # Reconciled per-section drafts (section_drafts with draft_clean overwritten
+    # by the cross-section-consistent text). Kept separate from section_drafts so
+    # it last-write-wins instead of appending through the operator.add reducer.
+    reconciled_drafts: list[dict]
+    final_output: str       # human-readable summary of reconciliation issues
+
+    # -- phase 3 (per-section mode only) --
+    reconcile_directive: str  # JSON ReconcilePlan: {corrections:[{section, corrections}], issues}
+    # Fan-in of the per-section apply step; assembled into reconciled_drafts.
+    reconciled_parts: Annotated[list[dict], operator.add]
 
 
 # ===================================================================
@@ -280,52 +304,46 @@ class PipelineState(TypedDict):
 
 
 def delegation_agent(state: PipelineState) -> dict:
-    """Assign manifest changes to specific DFARS sections."""
+    """Route each numbered change to the DFARS node(s) that must implement it.
+
+    This is delegation's only job: produce a change -> node mapping. It performs
+    no drafting and assigns no roles. Each node then receives exactly the subset
+    of changes routed to it.
+    """
     llm = _get_llm().with_structured_output(DelegationPlan)
 
-    summaries = "\n".join(
+    nodes = "\n".join(
         f"  [{i}] {s['section']}  (Part: {s['part']}, Subpart: {s['subpart']})\n"
-        f"      Full text:\n{s['before']}"
+        f"      Current text:\n{s['before']}"
         for i, s in enumerate(state["dfars_sections"])
     )
 
-    prompt = f"""You are a DFARS rulemaking coordinator.
+    prompt = f"""You are a DFARS rulemaking coordinator. Your ONLY job is to route
+changes to the DFARS nodes that must implement them. Do not draft anything.
 
-Given the change manifest and the DFARS sections listed below, produce an
-assignment plan that tells the drafting agents what each section needs.
+Following is the NDAA section:
+<NDAA_SECTION>
+{state["ndaa_text"]}
+</NDAA_SECTION>
 
-CHANGE MANIFEST:
-{state["change_manifest"]}
+NUMBERED CHANGES (inferred from the cited sources):
+{state["change_list"]}
 
-DFARS SECTIONS:
-{summaries}
+DFARS NODES (indexed):
+{nodes}
 
-Roles:
-- "primary": The section where the change is directly introduced — new definitions,
-  new requirements, modified thresholds, or repeals.
-- "secondary": The section is not the origin of the change but must adopt it —
-  e.g., start using a new term defined in a primary section, apply a new threshold,
-  or reflect a requirement introduced elsewhere.
-- "cite-only": The section just needs to add or update a cross-reference to a
-  primary or secondary section, with no substantive text changes.
-- "unaffected": The NDAA has no impact on this section.
+For each numbered change above, decide which DFARS node(s) must implement it. A
+change may map to one node, to several nodes, or -- if no listed node is the
+right place for it -- to none. A node may receive several changes or none.
 
-Rules:
-- Specify the change_type: substantive, definitional, cross-reference, or none.
-- Multiple sections can be "primary".
-- It is possible that none of the sections listed here are "primary" — the primary
-  section may not be in this batch. In that case, all sections can be "secondary",
-  "cite-only", or "unaffected". Assign roles based on what each section needs,
-  not on forcing a primary.
-- Only ONE section should host new definitions unless they naturally belong apart.
-- Mark sections that need no change as "unaffected".
-- List which changes (by id) are assigned to each section.
-- Provide specific delegation_notes for the drafter. For secondary sections,
-  specify which primary section's changes they need to adopt.
+Return, for EACH node, the list of change numbers it must implement (by their
+number in the change list above), using the node index exactly as shown. Map a
+change to a node only where that node's own text is what actually has to change.
 """
     result: DelegationPlan = llm.invoke([
         SystemMessage(
-            content="You are a regulatory coordination expert."
+            content="You are a regulatory coordination expert. Map changes to "
+            "nodes -- do not draft."
         ),
         HumanMessage(content=prompt),
     ])
@@ -333,230 +351,250 @@ Rules:
 
 
 # ===================================================================
-# Phase 2 -- Per-Section Drafting  (parallel via Send)
+# Phase 2 -- Per-Node Drafting  (parallel via Send)
 # ===================================================================
 
 
 def route_to_sections(state: PipelineState) -> list[Send]:
-    """Fan-out: create one Send per DFARS section for parallel drafting."""
-    plan_raw = state["delegation_plan"]
+    """Fan-out: one Send per DFARS node, carrying the changes routed to it.
 
+    Resolves each node's assigned change numbers back to their rendered change
+    strings so the drafter receives only its own subset of changes.
+    """
     try:
-        plan_data = json.loads(plan_raw)
-        assignments = {
-            a["section_index"]: a for a in plan_data.get("assignments", [])
+        plan_data = json.loads(state["delegation_plan"])
+        by_node = {
+            a["node_index"]: a.get("change_numbers", [])
+            for a in plan_data.get("assignments", [])
         }
-    except (json.JSONDecodeError, KeyError):
-        assignments = {}
+    except (json.JSONDecodeError, KeyError, TypeError):
+        by_node = {}
+
+    change_items = state.get("change_items", [])
 
     sends: list[Send] = []
     for i, section in enumerate(state["dfars_sections"]):
+        nums = by_node.get(i, [])
+        assigned = [
+            change_items[n - 1]
+            for n in nums
+            if isinstance(n, int) and 1 <= n <= len(change_items)
+        ]
         sends.append(Send("draft_single_section", {
             "section": section,
-            "section_index": i,
-            "assignment": assignments.get(i, {}),
-            "change_manifest": state["change_manifest"],
-            "ndaa_header": state.get("ndaa_header", ""),
+            "assigned_changes": assigned,
+            "ndaa_text": state["ndaa_text"],
         }))
 
     return sends
 
 
 def draft_single_section(state: dict) -> dict:
-    """Draft changes for a single DFARS section (runs as parallel subagent)."""
-    section = state["section"]
-    assign = state.get("assignment", {})
-    manifest = state["change_manifest"]
-    role = assign.get("role", "primary")
+    """Draft a single DFARS node by implementing the changes routed to it.
 
-    # Skip unaffected sections -- no LLM calls
-    if role == "unaffected":
+    Runs as a parallel subagent (one per node). Delegation has already decided
+    which numbered changes this node implements, so this is a single LLM call:
+    apply those changes to the node text. A node with no changes routed to it is
+    emitted unchanged -- no LLM call.
+    """
+    section = state["section"]
+    assigned = state.get("assigned_changes", [])
+    ndaa_text = state["ndaa_text"]
+
+    # No change routed here -> nothing to implement; emit current text as-is.
+    if not assigned:
         return {"section_drafts": [{
             "section": section["section"],
-            "role": "unaffected",
-            "proposed_changes": "No changes needed.",
-            "draft": section["before"],
+            "assigned_changes": [],
             "draft_clean": section["before"],
         }]}
 
-    llm_cl = _get_llm(temperature=0.0)
-    llm_draft = _get_llm(temperature=0.2)
+    changes_block = "\n\n".join(assigned)
 
-    delegation_ctx = f"""
-DELEGATION CONTEXT:
-- Role: {role}
-- Change type: {assign.get('change_type', 'substantive')}
-- Hosts definitions: {assign.get('hosts_definitions', False)}
-- Cites definitions from: {assign.get('cites_definitions_from', 'N/A')}
-- Assigned changes: {assign.get('assigned_changes', [])}
-- Notes: {assign.get('delegation_notes', '')}
-"""
+    draft_prompt = f"""You are an expert in DFARS regulations. Implement the changes
+assigned to this section into its text.
 
-    # Role-specific guidance for change list and drafting
-    role_guidance = ""
-    if role == "cite-only":
-        role_guidance = """
-ROLE-SPECIFIC GUIDANCE (cite-only):
-This section needs a NEW cross-reference paragraph inserted. Your task:
-1. Determine the correct insertion point (follow existing numbering patterns).
-2. Draft the cross-reference following the pattern of existing entries in this
-   section (e.g., "Part XXX—[Title]. Use the [provision/clause] at 252.XXX-XXXX,
-   [Title], as prescribed at [section], to comply with [statute].").
-3. Note any paragraph renumbering required.
-Do NOT conclude "no changes needed" — inserting the cross-reference IS the change.
-"""
-    elif role == "secondary":
-        role_guidance = """
-ROLE-SPECIFIC GUIDANCE (secondary):
-This section must adopt changes from a primary section. Your task:
-1. Identify text that references or depends on content being changed elsewhere.
-2. Propose minimal updates for consistency (updated terms, thresholds, dates,
-   or references).
-3. Do NOT re-implement the primary change here.
-"""
+Following is the NDAA section that mandates these changes:
+<NDAA_SECTION>
+{ndaa_text}
+</NDAA_SECTION>
 
-    draft_role_guidance = ""
-    if role == "cite-only":
-        draft_role_guidance = """
-NOTE: This is a cite-only section. The main change is inserting a new
-cross-reference paragraph. Follow the formatting pattern of existing entries.
-Apply paragraph renumbering with <removed>/<added> tags where needed.
-"""
+CHANGES TO IMPLEMENT IN THIS SECTION:
+{changes_block}
 
-    # ---- Step 1: Change list ----
-    cl_prompt = f"""You are a DFARS rulemaking analyst.
-
-Given the change manifest, delegation context, and DFARS section text below,
-produce a **numbered list of specific changes** needed for this section.
-
-CHANGE MANIFEST:
-{manifest}
-{delegation_ctx}
-
-EXISTING DFARS TEXT:
-\"\"\"
-{section['before']}
-\"\"\"
-{role_guidance}
-For each change specify:
-  1. **Location** -- which paragraph/definition is affected
-  2. **Type** -- ADD, REMOVE, or MODIFY
-  3. **Description** -- what to change and why
-
-MINIMALITY PRINCIPLE:
-- Only propose changes DIRECTLY mandated by the NDAA and change manifest.
-- Do NOT rewrite or rephrase existing text that remains legally valid.
-- If the NDAA adds a new requirement, propose ADDING text — do not replace
-  existing text unless it is directly contradicted.
-- Prefer inserting sentences or paragraphs over replacing entire sections.
-
-If no changes are needed, state that clearly.
-"""
-    cl_resp = llm_cl.invoke([
-        SystemMessage(
-            content=(
-                "Be specific, actionable, and MINIMAL. Only list the smallest "
-                "targeted changes necessary. Preserve all existing text that is "
-                "not directly contradicted by the NDAA. Do not draft — only list changes."
-            )
-        ),
-        HumanMessage(content=cl_prompt),
-    ])
-    proposed_changes = cl_resp.content.strip()
-
-    # ---- Step 2: Draft ----
-    draft_prompt = f"""You are an expert in DFARS regulations.
-
-Implement the proposed changes into the DFARS text below.
-
-PROPOSED CHANGES:
-{proposed_changes}
-{delegation_ctx}
-{draft_role_guidance}
 EXISTING DFARS TEXT:
 \"\"\"
 {section['before']}
 \"\"\"
 
 Instructions:
-- Your goal is to make the MINIMUM changes necessary. Preserve all existing
-  text verbatim unless a specific proposed change requires modifying it.
-- Output the COMPLETE section text with changes applied inline.
-- Wrap ONLY genuinely new text with <added>...</added> tags.
-- Wrap ONLY genuinely removed text with <removed>...</removed> tags.
-- For replacements: <removed>old</removed> <added>new</added>.
+- Implement EVERY change listed above, and ONLY those changes.
+- Make the MINIMUM edits necessary. Preserve all existing text verbatim unless a
+  listed change requires modifying it.
+- Return the COMPLETE revised section text with the changes applied inline.
 - Do NOT rephrase, reformat, or reorder existing text that is not changing.
-- Do NOT include markdown, code fences, triple quotes, or commentary.
-- Output ONLY the regulatory text with inline diff tags. No summaries,
-  no preamble, no "Revised DFARS Text:" prefix.
 """
-    draft_resp = llm_draft.invoke([
+    llm = _get_llm(temperature=0.0, max_tokens=16000).with_structured_output(SectionDraft)
+    result: SectionDraft = llm.invoke([
         SystemMessage(
             content=(
                 "You are a DFARS drafter. Your paramount rule is MINIMAL EDITING: "
                 "preserve every word of existing text that is not directly contradicted. "
-                "Only add, remove, or modify the specific text required by the proposed changes. "
-                "Output raw DFARS regulatory text only — no markdown, no commentary, no summaries.\n\n"
+                "Implement only the changes assigned to this section. "
+                "Return the full revised section text only.\n\n"
                 "Follow the FAR/DFARS Drafting Guide conventions below:\n\n" + _DRAFTING_GUIDE
             )
         ),
         HumanMessage(content=draft_prompt),
     ])
 
-    draft_tagged = draft_resp.content.strip()
     return {"section_drafts": [{
         "section": section["section"],
-        "role": role,
-        "proposed_changes": proposed_changes,
-        "draft": draft_tagged,
-        "draft_clean": _resolve_draft(draft_tagged),
+        "assigned_changes": assigned,
+        "draft_clean": result.revised_text.strip(),
     }]}
 
 
 # ===================================================================
-# Phase 3 -- Reconciliation
+# Phase 3 -- Reconciliation (plan corrections, then apply per section)
 # ===================================================================
 
 
-def reconciliation_agent(state: PipelineState) -> dict:
-    """Review all section drafts together for consistency."""
-    llm = _get_llm(temperature=0.0)
+def reconcile_plan(state: PipelineState) -> dict:
+    """Coordinator: review all drafts together and route per-section corrections.
 
-    drafts_text = "\n\n".join(
-        f"=== {d['section']} (role: {d.get('role', '?')}) ===\n{d['draft']}"
-        for d in state.get("section_drafts", [])
+    Mirrors delegation's shape -- a single global call that emits per-node
+    assignments -- but here it both discovers the cross-section issues and routes
+    the specific corrections each section needs. It drafts nothing; a separate
+    per-section step applies the corrections (bounding each output to one
+    section, so large groups can't truncate the way the joint call can).
+    """
+    # Output is corrections + a summary, not full section text, so a moderate
+    # budget suffices even for large groups.
+    llm = _get_llm(temperature=0.0, max_tokens=8000).with_structured_output(
+        ReconcilePlan
     )
 
-    prompt = f"""You are an expert in reviewing DFARS drafts.
+    drafts = state.get("section_drafts", [])
+    drafts_text = "\n\n".join(
+        f"=== {d['section']} ===\n{d['draft_clean']}"
+        for d in drafts
+    )
 
-You have draft revisions for multiple DFARS sections, all implementing the same NDAA provision. Review them together and check:
+    prompt = f"""You are an expert reviewing DFARS drafts. You have draft revisions
+for multiple DFARS sections, all implementing the same NDAA provision. Review them
+together and identify cross-section inconsistencies -- but do NOT rewrite the
+sections. Only list the specific corrections each section needs.
 
+Check for:
 1. **Definition dedup** -- definitions belong only in the host section; other sections should cross-reference, not duplicate.
-2. **Cross-reference validation** -- cite-only sections actually cite the right source.
+2. **Cross-reference validation** -- sections cite the right source section.
 3. **Consistency** -- terms, thresholds, dates identical across sections.
 4. **Conflict resolution** -- no two sections implement the same sub-requirement differently.
 
-CHANGE MANIFEST:
-{state["change_manifest"]}
-
-DELEGATION PLAN:
-{state["delegation_plan"]}
+Below are the changes inferred by looking at the external sources cited:
+{state["change_list"]}
 
 DRAFT REVISIONS:
 {drafts_text}
 
-Output:
-1. Issues found (if any).
-2. For each section, the final revised text (or "no changes from draft").
-3. A brief overall summary.
+For each section that needs changes, return its section number (exactly as shown)
+and a list of specific, minimal corrections to apply to its draft. A section that
+is already consistent needs NO entry. Also give a brief summary of the issues you
+found.
 """
-    resp = llm.invoke([
+    result: ReconcilePlan = llm.invoke([
         SystemMessage(
-            content="Be thorough but concise. Focus on cross-section consistency."
+            content="Be thorough but concise. Identify cross-section issues and "
+            "route corrections -- do not draft."
         ),
         HumanMessage(content=prompt),
     ])
-    return {"final_output": resp.content.strip()}
+    return {
+        "reconcile_directive": result.model_dump_json(),
+        "final_output": result.issues.strip(),
+    }
+
+
+def route_reconcile(state: PipelineState) -> list[Send]:
+    """Fan-out: one Send per draft, carrying that section's corrections."""
+    try:
+        plan = json.loads(state["reconcile_directive"])
+        by_section = {
+            c["section"]: c.get("corrections", [])
+            for c in plan.get("corrections", [])
+        }
+        issues = plan.get("issues", "")
+    except (json.JSONDecodeError, KeyError, TypeError):
+        by_section, issues = {}, ""
+
+    sends: list[Send] = []
+    for d in state.get("section_drafts", []):
+        sends.append(Send("reconcile_single_section", {
+            "draft": d,
+            "corrections": by_section.get(d["section"], []),
+            "review_context": issues,
+        }))
+    return sends
+
+
+def reconcile_single_section(state: dict) -> dict:
+    """Apply one section's routed corrections to its draft (parallel subagent).
+
+    A section with no corrections passes through unchanged -- no LLM call.
+    """
+    draft = state["draft"]
+    corrections = state.get("corrections", [])
+
+    nd = dict(draft)
+    if not corrections:
+        return {"reconciled_parts": [nd]}
+
+    corrections_block = "\n".join(f"- {c}" for c in corrections)
+    prompt = f"""You are reconciling one DFARS section's draft for cross-section
+consistency with the other sections implementing the same NDAA provision.
+
+REVIEW CONTEXT (cross-section issues found across all sections):
+{state.get('review_context', '') or '(none provided)'}
+
+CORRECTIONS TO APPLY TO THIS SECTION:
+{corrections_block}
+
+CURRENT DRAFT (section {draft['section']}):
+\"\"\"
+{draft['draft_clean']}
+\"\"\"
+
+Instructions:
+- Apply ONLY the corrections listed above. Make the MINIMUM edits necessary.
+- Preserve all other existing text verbatim.
+- Return the COMPLETE revised section text.
+"""
+    llm = _get_llm(temperature=0.0, max_tokens=8000).with_structured_output(
+        SectionDraft
+    )
+    result: SectionDraft = llm.invoke([
+        SystemMessage(
+            content=(
+                "You are a DFARS drafter applying targeted cross-section "
+                "corrections. Minimal editing: change only what the corrections "
+                "require, and preserve every other word verbatim. Return the full "
+                "revised section text only.\n\n"
+                "Follow the FAR/DFARS Drafting Guide conventions below:\n\n" + _DRAFTING_GUIDE
+            )
+        ),
+        HumanMessage(content=prompt),
+    ])
+
+    revised = result.revised_text.strip()
+    if revised:
+        nd["draft_clean"] = revised
+    return {"reconciled_parts": [nd]}
+
+
+def assemble_reconciled(state: PipelineState) -> dict:
+    """Fan-in: collect the per-section applied drafts into reconciled_drafts."""
+    return {"reconciled_drafts": state.get("reconciled_parts", [])}
 
 
 # ===================================================================
@@ -564,26 +602,48 @@ Output:
 # ===================================================================
 
 
-def build_graph():
-    """Construct and compile the 1:N pipeline graph."""
+RECONCILE_MODES = ("off", "per_section")
+
+
+def build_graph(reconcile: str = "per_section"):
+    """Construct and compile the 1:N pipeline graph.
+
+    ``reconcile`` selects the Phase-3 cross-section reconciliation:
+
+    - "off"          -- skip it; the per-node drafts are final. Isolates whether
+                        decomposition alone (route + isolated drafting) helps.
+    - "per_section"  -- a coordinator routes per-section corrections, then a
+                        parallel step applies each section's corrections (one
+                        bounded output per call; no large-group truncation).
+    """
+    if reconcile not in RECONCILE_MODES:
+        raise ValueError(
+            f"reconcile must be one of {RECONCILE_MODES}, got {reconcile!r}"
+        )
+
     wf = StateGraph(PipelineState)
 
-    # Phase 1
+    # Phase 1 -- delegation (change -> node routing)
     wf.add_node("delegation", delegation_agent)
 
     # Phase 2 -- parallel fan-out via Send()
     wf.add_node("draft_single_section", draft_single_section)
 
-    # Phase 3
-    wf.add_node("reconciliation", reconciliation_agent)
-
-    # Edges
     wf.set_entry_point("delegation")
     # Fan-out: delegation -> N parallel draft_single_section instances
     wf.add_conditional_edges("delegation", route_to_sections)
-    # Fan-in: each draft_single_section merges into section_drafts via reducer
-    wf.add_edge("draft_single_section", "reconciliation")
-    wf.add_edge("reconciliation", END)
+
+    if reconcile == "per_section":
+        # Phase 3 -- plan corrections (1 call), then apply per section (fan-out)
+        wf.add_node("reconcile_plan", reconcile_plan)
+        wf.add_node("reconcile_single_section", reconcile_single_section)
+        wf.add_node("assemble_reconciled", assemble_reconciled)
+        wf.add_edge("draft_single_section", "reconcile_plan")
+        wf.add_conditional_edges("reconcile_plan", route_reconcile)
+        wf.add_edge("reconcile_single_section", "assemble_reconciled")
+        wf.add_edge("assemble_reconciled", END)
+    else:  # "off"
+        wf.add_edge("draft_single_section", END)
 
     return wf.compile()
 
@@ -593,18 +653,37 @@ def build_graph():
 # ===================================================================
 
 
-def run_pipeline(group: dict) -> PipelineState:
-    """Run the full 1:N pipeline for a single NDAA group."""
-    graph = build_graph()
+def run_pipeline(group: dict, reconcile: str = "per_section") -> PipelineState:
+    """Run the full 1:N pipeline for a single NDAA group.
+
+    ``reconcile`` is the Phase-3 mode: "off" or "per_section" (see build_graph).
+    """
+    graph = build_graph(reconcile=reconcile)
     initial: PipelineState = {
         "ndaa_header": group["ndaa"].get("header", ""),
+        "ndaa_text": group["ndaa"].get("text", ""),
         "dfars_sections": group["dfars_sections"],
-        "change_manifest": group["change_manifest"],
+        "change_list": group["change_list"],
+        "change_items": group.get("change_items", []),
         "delegation_plan": "",
         "section_drafts": [],
+        "reconciled_drafts": [],
         "final_output": "",
+        "reconcile_directive": "",
+        "reconciled_parts": [],
     }
     return graph.invoke(initial)
+
+
+# ===================================================================
+# Pre-compiled graphs for LangGraph Studio / `langgraph dev`
+# ===================================================================
+# The dev server treats a langgraph.json factory as `make_graph(config)` and
+# passes it the RunnableConfig -- which would collide with build_graph's
+# `reconcile` arg. So expose ready-made compiled graphs and point langgraph.json
+# at these instead of at build_graph.
+graph = build_graph("per_section")   # default Studio graph
+graph_off = build_graph("off")       # reconciliation-off variant
 
 
 # ===================================================================
@@ -622,16 +701,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--limit", type=int, default=None, help="Max NDAA groups to process"
     )
-    parser.add_argument(
-        "--batch-size", type=int, default=5,
-        help="Process NDAA groups in batches of this size (rate-limit safety)",
-    )
     parser.add_argument("--output", type=str, default=None, help="Output JSON path")
     parser.add_argument(
         "--single-ndaa", action="store_true",
         help="Only process DFARS sections from documents with exactly one NDAA citation",
     )
+    parser.add_argument(
+        "--reconcile", choices=["off", "per-section"], default="per-section",
+        help="Phase-3 reconciliation mode (default: per-section). 'off' = per-node "
+        "drafts are final; 'per-section' = plan corrections then apply per section",
+    )
     args = parser.parse_args()
+    reconcile_mode = args.reconcile.replace("-", "_")
 
     print("Loading NDAA -> DFARS groups ...")
     groups = load_ndaa_groups(single_ndaa=args.single_ndaa)
@@ -639,9 +720,6 @@ if __name__ == "__main__":
 
     if args.limit:
         groups = groups[: args.limit]
-
-    # Process in batches to respect rate limits
-    print(f"Processing in batches of {args.batch_size}")
 
     results: list[dict] = []
     for idx, group in enumerate(groups, 1):
@@ -653,13 +731,16 @@ if __name__ == "__main__":
         )
 
         try:
-            result = run_pipeline(group)
-            # Attach ground-truth "before"/"after" text to each section draft
+            result = run_pipeline(group, reconcile=reconcile_mode)
+            # Attach ground-truth "before"/"after" text to each section draft.
+            # Prefer the reconciled drafts (draft_clean overwritten with the
+            # cross-section-consistent text); fall back to the raw Phase-2
+            # drafts if reconciliation produced nothing.
             gt_by_section = {
                 s["section"]: s
                 for s in group["dfars_sections"]
             }
-            drafts = result.get("section_drafts", [])
+            drafts = result.get("reconciled_drafts") or result.get("section_drafts", [])
             for d in drafts:
                 gt = gt_by_section.get(d["section"], {})
                 d["before"] = gt.get("before", "")

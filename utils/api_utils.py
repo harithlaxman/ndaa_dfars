@@ -43,21 +43,54 @@ def _parse_fr_date(date_str):
     return None
 
 
-def get_cfr_parts(citation, fr_date):
-    """Return the FR final rule for a citation + date, with its affected CFR parts.
+def _fetch_html(url):
+    """Fetch a URL's text with the module headers, or None on a request error."""
+    try:
+        response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"  HTML fetch error for {url}: {e}")
+        return None
 
-    The publication date plus a ``type=RULE`` filter narrow the search to the single
-    final rule (the same citation/page can otherwise surface multiple documents).
+
+def _parse_sections(html_text):
+    """Extract amended CFR sections from an FR rule's full-text HTML.
+
+    Each amended section is marked by a ``sectno sectno-reference`` div (holding the
+    section number) immediately followed by a ``section-subject`` div (the heading).
+    The table-of-contents uses a different class (``sectno-citation`` /
+    ``sectno-subject``) and is therefore excluded.
+    """
+    sections = []
+    for ref in HTMLParser(html_text).css("div.sectno-reference"):
+        number = ref.text(strip=True)
+        subject = ""
+        sibling = ref.next
+        while sibling is not None:
+            classes = sibling.attributes.get("class") or "" if sibling.tag == "div" else ""
+            if "section-subject" in classes:
+                subject = sibling.text(strip=True)
+                break
+            sibling = sibling.next
+        sections.append({"section": number, "subject": subject})
+    return sections
+
+
+def get_sections(citation, fr_date):
+    """Return the FR final rule for a citation + date, with its affected CFR sections grouped by part.
+
+    Only includes parts and sections where the part lies between 200 and 299 (DFARS range).
 
     Args:
         citation: a Federal Register citation, e.g. "89 FR 53502".
         fr_date: the rule's publication date, MM/DD/YY or MM/DD/YYYY, e.g. "06/27/24".
 
     Returns:
-        A dict with ``document_number``, ``citation``, ``title``, ``body_html_url`` and
-        ``cfr_references`` (a de-duplicated list of affected part numbers), or ``None``
-        if the citation or date is unparseable, no matching rule is found, or the
-        request fails.
+        A dict with ``document_number``, ``citation``, ``title``, ``body_html_url``,
+        ``effective_on``, ``cfr_references`` (list of parts), and ``implements`` (a dict of
+        {part: [sections]} matching the 200-299 range), or ``None`` if the citation or date
+        is unparseable, no matching rule is found, or the request/HTML fetch fails.
     """
     page = _parse_citation_page(citation)
     iso_date = _parse_fr_date(fr_date)
@@ -102,79 +135,50 @@ def get_cfr_parts(citation, fr_date):
             for ref in doc.get("cfr_references") or []:
                 part = ref.get("part")
                 if part is not None and part not in parts:
-                    parts.append(part)
+                    try:
+                        part_int = int(part)
+                        if 200 <= part_int <= 299:
+                            parts.append(part)
+                    except ValueError:
+                        pass
+
+            body_html_url = doc.get("body_html_url")
+            grouped = {}
+            if body_html_url:
+                html_text = _fetch_html(body_html_url)
+                if html_text is not None:
+                    sections_list = _parse_sections(html_text)
+                    for sec in sections_list:
+                        section_num = sec.get("section", "").strip()
+                        if not section_num:
+                            continue
+                        # Inferred part: first 3 digits of the section number
+                        match = re.search(r'^\d{3}', section_num)
+                        if not match:
+                            continue
+                        part = match.group(0)
+                        try:
+                            part_int = int(part)
+                            if 200 <= part_int <= 299:
+                                if part not in grouped:
+                                    grouped[part] = []
+                                if section_num not in grouped[part]:
+                                    grouped[part].append(section_num)
+                        except ValueError:
+                            continue
+
             return {
                 "document_number": doc.get("document_number"),
                 "citation": doc.get("citation"),
                 "title": doc.get("title"),
-                "body_html_url": doc.get("body_html_url"),
+                "body_html_url": body_html_url,
                 "effective_on": doc.get("effective_on"),
-                "cfr_references": parts,
+                "cfr_references": grouped.keys(),
+                "implements": grouped,
             }
 
     print(f"  No page match for {citation} on {iso_date}")
     return None
-
-
-def _fetch_html(url):
-    """Fetch a URL's text with the module headers, or None on a request error."""
-    try:
-        response = requests.get(url, headers=_HEADERS, timeout=_TIMEOUT)
-        response.raise_for_status()
-        return response.text
-    except requests.exceptions.RequestException as e:
-        print(f"  HTML fetch error for {url}: {e}")
-        return None
-
-
-def _parse_sections(html_text):
-    """Extract amended CFR sections from an FR rule's full-text HTML.
-
-    Each amended section is marked by a ``sectno sectno-reference`` div (holding the
-    section number) immediately followed by a ``section-subject`` div (the heading).
-    The table-of-contents uses a different class (``sectno-citation`` /
-    ``sectno-subject``) and is therefore excluded.
-    """
-    sections = []
-    for ref in HTMLParser(html_text).css("div.sectno-reference"):
-        number = ref.text(strip=True)
-        subject = ""
-        sibling = ref.next
-        while sibling is not None:
-            classes = sibling.attributes.get("class") or "" if sibling.tag == "div" else ""
-            if "section-subject" in classes:
-                subject = sibling.text(strip=True)
-                break
-            sibling = sibling.next
-        sections.append({"section": number, "subject": subject})
-    return sections
-
-
-def get_sections(citation, fr_date):
-    """Return the CFR sections amended by an FR final rule.
-
-    Resolves the rule via :func:`get_cfr_parts` (citation + date), fetches its
-    full-text HTML, and extracts each amended section.
-
-    Args:
-        citation: a Federal Register citation, e.g. "89 FR 53502".
-        fr_date: the rule's publication date, MM/DD/YY or MM/DD/YYYY, e.g. "06/27/24".
-
-    Returns:
-        A list of ``{"section": <number>, "subject": <heading>}`` dicts in document
-        order (e.g. ``{"section": "236.606-70", "subject": "Statutory fee limitation."}``),
-        or ``None`` if the rule can't be resolved or its HTML can't be fetched.
-    """
-    doc = get_cfr_parts(citation, fr_date)
-    if not doc or not doc.get("body_html_url"):
-        print(f"  No HTML available for {citation} on {fr_date}")
-        return None
-
-    html_text = _fetch_html(doc["body_html_url"])
-    if html_text is None:
-        return None
-
-    return _parse_sections(html_text)
 
 
 # ─── GovInfo link service ──────────────────────────────────────────────────────────

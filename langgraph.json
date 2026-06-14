@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "framework2": "./pipeline/agents/framework2/agent.py:graph",
+    "framework2_off": "./pipeline/agents/framework2/agent.py:graph_off"
+  },
+  "env": "./pipeline/agents/framework2/.env"
+}

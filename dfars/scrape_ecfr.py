@@ -29,7 +29,7 @@ from tqdm import tqdm
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 INPUT_CSV = str(_PROJECT_ROOT / "data" / "fr_cases.csv")
-OUTPUT_DIR = _PROJECT_ROOT / "data" / "DFARS"
+OUTPUT_DIR = _PROJECT_ROOT / "data"
 MANIFEST_CSV = OUTPUT_DIR / "dfars_diffs.csv"
 
 TITLE = "48"
@@ -131,16 +131,16 @@ def fetch_title(date, out_path):
 def split_row_cases(row):
     """Split one fr_cases row into per-case (case, eff_date, parts) tuples.
 
-    Rows bundling several cases use ';' to separate effective_on, dfars_case and
-    cfr_references; within a cfr_references segment the parts are ','-separated.
+    Rows bundling several cases use ';' to separate effective_on, case_number and
+    cfr_parts; within a cfr_parts segment the parts are ','-separated.
     """
     def _cell(name):
         value = row.get(name)
         return "" if pd.isna(value) else str(value)
 
     dates = [d for d in _cell("effective_on").split(";") if d.strip()]
-    ref_groups = _cell("cfr_references").split(";")
-    cases = [c.strip() for c in _cell("dfars_case").split(";")]
+    ref_groups = _cell("cfr_parts").split(";")
+    cases = [c.strip() for c in _cell("case_number").split(";")]
     out = []
     for i, d in enumerate(dates):
         refs = ref_groups[i] if i < len(ref_groups) else (ref_groups[-1] if ref_groups else "")
@@ -183,7 +183,6 @@ def main():
             manifest_rows.append({
                 "ndaa_year": row.get("ndaa_year"),
                 "ndaa_section": row.get("ndaa_section"),
-                "section_title": row.get("section_title"),
                 "case_number": row.get("case_number"),
                 "dfars_case": case,
                 "citation": row.get("citation"),
