@@ -1,20 +1,16 @@
+---
 # FAR/DFARS Drafting Guide
 
----
+Follow these conventions when writing the Federal Acquisition Regulation (FAR) and the Defense Federal Acquisition Regulation Supplement (DFARS). You must strictly adhere to the established guidelines for clear writing; structure and format of text, solicitation provisions, and contract clauses; writing conventions; and terminology.
 
-## FOREWORD
-
-
-This guide provides the conventions for writing the Federal Acquisition Regulation (FAR) and the Defense Federal Acquisition Regulation Supplement (DFARS). The guide addresses guidelines for clear writing; structure and format of text, solicitation provisions, and contract clauses; writing conventions; and terminology.
-
-The guide encourages clear and simple writing using—
+The following conventions encourage clear and simple writing using—
 
 - Active voice;
 - Short sentences and paragraphs;
 - Vertical lists; and
 - Care in using and placing words.
 
-All amendments to the FAR/DFARS should comply with this guide.
+All amendments to the FAR/DFARS should comply with following rules.
 
 ---
 
@@ -313,9 +309,9 @@ All amendments to the FAR/DFARS should comply with this guide.
 > Clean Air Act (42 U.S.C. 7401, et seq.)
 > Javits-Wagner-O'Day Act (41 U.S.C. 46-48c)
 
-      - **(iii)** If a statute appears in many scattered sections or titles of the United States Code and citation to all parts would be cumbersome, give the public law number.
-      - **(iv)** If only one section or paragraph of a statute is relevant, cite that section or paragraph specifically.
-      - **(v)** If a statute is not in the United States Code, give the public law number.
+      - (iii) If a statute appears in many scattered sections or titles of the United States Code and citation to all parts would be cumbersome, give the public law number.
+      - (iv) If only one section or paragraph of a statute is relevant, cite that section or paragraph specifically.
+      - (v) If a statute is not in the United States Code, give the public law number.
 
 > **Example:**
 > Federal Acquisition Streamlining Act of 1994 (Pub. L. 103-355)
@@ -386,85 +382,5 @@ Use—
 ### Warranty.
 
 Use the term "warranty," only when referring to a contractor's promise or affirmation regarding the nature, usefulness, or condition of supplies or services furnished under a contract, does not require separate justification. Do not use the term when referring to an affirmation that is a certification or representation.
-
----
-
-## CHAPTER 6--PROPER USE OF ASTERISKS
-
-
-If you add or revise only certain units of a section, the amendatory language must state exactly which units are added or revised, and only those units are printed. Use asterisks to represent text which is not changed.
-
-### Use of 5 asterisks.
-
-Use 5 asterisks to show that a whole paragraph, including its subordinate paragraphs, is not changed. In this example, the 5 asterisks before revised paragraph (d) show that paragraphs (a), (b) and (c) remain unchanged. The 5 asterisks that follow revised paragraph (d) show that the remaining text in the section is also unchanged.
-
-> **Example:** Use of 5 asterisks. Revise paragraph (d) of 166.15 to read as follows:
->
-> 166.15 State status.
->
-> \* \* \* \* \*
->
-> - **(d)** The following States issue licenses under cooperative agreements with the Animal and Plant Health Inspection Service, but do not have primary enforcement responsibility under the Act: Kentucky, Maryland, Puerto Rico, Texas, and Washington.
->
-> \* \* \* \* \*
-
-### Use of 3 asterisks.
-
-Use 3 asterisks when you change text at a subordinate level. This shows that the higher level paragraphs remain unchanged. In this example, the 5 asterisks before paragraph (b) show that paragraph (a) remains unchanged. The 3 asterisks following "(b)" show that (b)(1) through (b)(4) remain unchanged, and the 3 asterisks following "(5)" show that the introductory text of (b)(5) is unchanged. The 5 asterisks that follow revised paragraph (b)(5)(i) show that the remaining text in the section is unchanged.
-
-> **Example:** Use of 3 asterisks. Revise 202.3(b)(5)(i) to read as follows:
->
-> 202.3 Registration of copyright.
->
-> \* \* \* \* \*
->
-> - **(b)** \* \* \*
->   - **(5)** \* \* \*
->     - **(i)** The Library of Congress receives two complimentary copies promptly after publication of each issue of the serial.
->
-> \* \* \* \* \*
-
-We strongly recommend that you use no more than 3 paragraph levels. Use of more than 3 paragraph levels makes your rule hard to read and use. The smallest unit you may revise is a sentence. When you revise only a sentence of a paragraph, use 3 asterisks to show that the remaining sentences in the paragraph are unchanged.
-
-> **Example:** Revise the first sentence of 416.916 to read as follows:
->
-> 416.916 What will happen if I fail to submit medical and other evidence?
->
-> You (and, if you are a child, your parent, guardian, relative, or other person acting on your behalf) must cooperate in furnishing us with, or in helping us to obtain or identify, available medical or other evidence about your impairment(s). \* \* \*
-
-### Example: Use of both 3 and 5 asterisks in the same document.
-
-> PART 216--REGULATIONS GOVERNING THE TAKING AND IMPORTING OF MARINE MAMMALS
->
-> 1\. The authority citation for part 216 continues to read as follows:
->
-> Authority: 16 U.S.C. 1361-1407.
->
-> 2\. Revise paragraph (b)(1)(v), the first sentence of paragraphs (b)(3) and (c)(2), and paragraph (c)(4)(i) introductory text; and add paragraph (b)(1)(vi) to 216.24 to read as follows:
->
-> 216.24 Taking and related acts incidental to commercial fishing operations.
->
-> \* \* \* \* \* — _Indicates Paragraph (a) Unchanged_
->
-> - **(b)** \* \* \* — _Indicates Paragraph (b) Introductory Text Unchanged_
->   - **(1)** \* \* \* — _Indicates Paragraphs (b)(1) Introductory Text And (b)(1)(i) through (iv) Unchanged_
->     - **(v) Category 5: Other gear.** Commercial fishing operations utilizing trolling, gillnets, hook and line gear, and any gear not classified under paragraphs (b)(1)(i) and (b)(1)(ii) of this section. — _Revises Paragraph (b)(1)(v)_
->     - **(vi)** Category 6: Commercial passenger fishing vessel operation. Commercial fishing operations from a commercial passenger fishing vessel for the purpose of active sport fishing as defined in 216.3. — _Adds Paragraph (b)(1)(vi)_
->
-> \* \* \* \* \* — _Indicates Paragraph (b)(2) Unchanged_
->
-> - **(3)** Submit the original and two copies of the application for general permit to the Assistant Administrator. \* \* \* — _Revises First Sentence of Paragraph (b)(3); Indicates Remainder of Paragraph (b)(3) Unchanged_
->
-> \* \* \* \* \* — _Indicates Paragraphs (b)(4) through (7) Unchanged_
->
-> - **(c)** \* \* \* — _Indicates Paragraph (c) Introductory Text and (c)(1) Unchanged_
->   - **(2)** Operator's certificate of inclusion. You must hold a valid operator's certificate of inclusion if you are the person in charge of and actually controlling fishing operations (after this referred to as the operator) on a vessel engaged in commercial fishing operations for which a Category 2 or Category 6 general permit is required under this subpart. You may not transfer this certificate. You have a valid certificate only for a vessel having a valid vessel certificate of inclusion for the same category. In order to receive a certificate of inclusion, the operator must satisfactorily complete required training. You must renew your operator's certificate of inclusion annually. — _Revises Paragraph (c)(2)_
->
-> \* \* \* \* \* — _Indicates Paragraph (c)(3) Unchanged_
->
-> - **(4)** \* \* \* — _Indicates Paragraph (c)(4) Introductory Text Unchanged_
->   - **(i)** Category 1, 3, 4, 5, and 6 applications: — _Revises Paragraph (c)(4)(i) Introductory Text_
->
-> \* \* \* \* \* — _Indicates Remainder of Section Unchanged_
 
 ---

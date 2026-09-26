@@ -20,10 +20,10 @@ Inputs:
     dfars/dfars_diff.py from dated eCFR snapshots in Mongo). Changed nodes are
     rolled up to their enclosing SECTION (part-252 clauses kept whole) so each
     drafting unit carries full-section context.
-  - pipeline/out/manifests_fr_cases.json: the pre-computed change manifest per NDAA
-    section (from pipeline/fetch_context.py). Sections without one are skipped.
-    Surfaced to the prompts as a compact change list (change_type, description,
-    applies_to only).
+  - pipeline/out/drafting_context_fr_cases.json: the pre-computed section brief per
+    NDAA section (from pipeline/fetch_drafting_context.py). Sections without one are
+    skipped. Its `requirements` (each change_type + description) are surfaced to the
+    prompts as a compact, numbered change list.
   - Mongo (db "ndaa_dfars", collection "ndaas"): the NDAA section's full statutory
     text, fed to the prompts alongside the change list. Read-only.
 """
@@ -69,9 +69,8 @@ _DATA_DIR = _REPO_ROOT / "data"
 # every changed DFARS node, produced by dfars/dfars_diff.py from dated eCFR
 # snapshots in Mongo.
 _DIFF_FILE = _DATA_DIR / "dfars_diff_all.json"
-_MANIFEST_FILE = _PIPELINE_DIR / "out" / "manifests_fr_cases.json"
-_DRAFTING_GUIDE_PATH = _FRAMEWORK_DIR / "far_drafting_guide.md"
-_DRAFTING_GUIDE = _DRAFTING_GUIDE_PATH.read_text(encoding="utf-8")
+_BRIEF_FILE = _PIPELINE_DIR / "out" / "drafting_context_fr_cases.json"
+_DRAFTING_GUIDE = (_PIPELINE_DIR / "far_drafting_guide.md").read_text(encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # LLM & tools
@@ -105,30 +104,30 @@ def _get_llm(temperature: float = 0.0, max_tokens: int = 4096) -> AzureChatOpenA
 
 
 def _render_change(i: int, m: dict) -> str:
-    """Render a single manifest change, numbered `i`."""
-    return (
-        f"{i}. [{m.get('change_type', '')}] {m.get('description', '')}\n"
-        f"   Applies to: {m.get('applies_to', '')}"
-    )
+    """Render a single change, numbered `i`."""
+    line = f"{i}. [{m.get('change_type', '')}] {m.get('description', '')}"
+    applies = m.get("applies_to")
+    if applies:
+        line += f"\n   Applies to: {applies}"
+    return line
 
 
-def _change_items(manifests: list[dict]) -> list[str]:
-    """One rendered change string per manifest item, 1-indexed in the text.
+def _change_items(changes: list[dict]) -> list[str]:
+    """One rendered change string per change item, 1-indexed in the text.
 
     `_change_items(...)[k]` is the change shown as number `k + 1` in the change
     list -- delegation routes by these numbers, and route_to_sections resolves a
     node's assigned numbers back to these strings.
     """
-    return [_render_change(i, m) for i, m in enumerate(manifests, 1)]
+    return [_render_change(i, m) for i, m in enumerate(changes, 1)]
 
 
-def _format_change_list(manifests: list[dict]) -> str:
-    """Render the manifest as a compact, numbered change list.
+def _format_change_list(changes: list[dict]) -> str:
+    """Render the changes as a compact, numbered change list.
 
-    Only the fields the drafting stages need are surfaced: change_type,
-    description, and applies_to.
+    Each change surfaces change_type + description (and applies_to when present).
     """
-    items = _change_items(manifests)
+    items = _change_items(changes)
     return "\n".join(items) if items else "(no changes inferred)"
 
 
@@ -168,7 +167,7 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
     case(s), and every case carries the before/after text of the DFARS nodes it
     changed (produced by dfars/dfars_diff.py). We pool the changed nodes across an
     NDAA's cases, roll them up to section units (see `_section_key`), and attach
-    the pre-computed change manifest. NDAA sections without a manifest, or with no
+    the pre-computed drafting brief. NDAA sections without a brief, or with no
     changed nodes carrying prior text, contribute nothing.
 
     Parameters
@@ -191,10 +190,10 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
     with open(_DIFF_FILE) as f:
         diff: dict = json.load(f)
 
-    # Pre-computed change manifests (from pipeline/fetch_context.py), keyed by
-    # "<year>_<section>". These replace runtime manifest extraction.
-    with open(_MANIFEST_FILE) as f:
-        manifests = {s["ndaa_id"]: s for s in json.load(f).get("sections", [])}
+    # Pre-computed section briefs (from pipeline/fetch_drafting_context.py), keyed
+    # by "<year>_<section>". Each brief's `requirements` are the numbered change list.
+    with open(_BRIEF_FILE) as f:
+        briefs = {s["ndaa_id"]: s for s in json.load(f).get("sections", [])}
 
     client = getMongoClient()
     groups: list[dict] = []
@@ -204,9 +203,9 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
             section = str(entry["ndaa_section"])
             ndaa_id = f"{year}_{section}"
 
-            manifest_entry = manifests.get(ndaa_id)
-            if manifest_entry is None:
-                print(f"  skip NDAA {year} s{section}: no pre-computed manifest")
+            brief_entry = briefs.get(ndaa_id)
+            if brief_entry is None:
+                print(f"  skip NDAA {year} s{section}: no pre-computed drafting brief")
                 continue
 
             changes: list[dict] = []
@@ -240,12 +239,13 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
                 continue
             ndaa_section = ndaa_doc.get("section", {})
 
-            # Compact change list: change_type, description, applies_to only.
-            # `change_items` keeps the per-change strings addressable by number so
-            # delegation can route them and drafting can resolve a node's subset.
-            manifest_items = manifest_entry.get("manifests", [])
-            change_list = _format_change_list(manifest_items)
-            change_items = _change_items(manifest_items)
+            # Compact change list from the brief's requirements (change_type +
+            # description). `change_items` keeps the per-change strings addressable
+            # by number so delegation can route them and drafting can resolve a
+            # node's subset.
+            requirements = brief_entry.get("requirements", [])
+            change_list = _format_change_list(requirements)
+            change_items = _change_items(requirements)
 
             # One group per NDAA: all affected DFARS sections stay together so
             # delegation sees the full set and drafting fans out over every node.
@@ -253,7 +253,7 @@ def load_ndaa_groups(single_ndaa: bool = False) -> list[dict]:
                 "ndaa": {
                     "year": year,
                     "section": section,
-                    "header": ndaa_section.get("heading", manifest_entry.get("section_heading", "")),
+                    "header": ndaa_section.get("heading", brief_entry.get("section_heading", "")),
                     "text": ndaa_section.get("text", ""),
                 },
                 "change_list": change_list,
@@ -318,22 +318,24 @@ def delegation_agent(state: PipelineState) -> dict:
         for i, s in enumerate(state["dfars_sections"])
     )
 
-    prompt = f"""You are a DFARS rulemaking coordinator. Your ONLY job is to route
-changes to the DFARS nodes that must implement them. Do not draft anything.
-
-Following is the NDAA section:
+    prompt = f""" Following is the NDAA section:
 <NDAA_SECTION>
 {state["ndaa_text"]}
 </NDAA_SECTION>
 
+Below is a list of changes the NDAA section mandates 
+(not all of the below changes may be applicable to DFARS).
+
 NUMBERED CHANGES (inferred from the cited sources):
 {state["change_list"]}
+
+Below are the DFARS nodes that might be impacted by the above changes.
 
 DFARS NODES (indexed):
 {nodes}
 
-For each numbered change above, decide which DFARS node(s) must implement it. A
-change may map to one node, to several nodes, or -- if no listed node is the
+For each numbered change above, decide which DFARS node(s) must implement it.
+A change may map to one node, to several nodes, or -- if no listed node is the
 right place for it -- to none. A node may receive several changes or none.
 
 Return, for EACH node, the list of change numbers it must implement (by their
@@ -342,8 +344,10 @@ change to a node only where that node's own text is what actually has to change.
 """
     result: DelegationPlan = llm.invoke([
         SystemMessage(
-            content="You are a regulatory coordination expert. Map changes to "
-            "nodes -- do not draft."
+            content="""You are an expert DFARS rulemaking coordinator. 
+            Given to you is a NDAA section and a list of changes that must be implemented in DFARS. 
+            Your ONLY job is to route these changes to the DFARS nodes that must implement them. 
+            Do not draft anything."""
         ),
         HumanMessage(content=prompt),
     ])
@@ -411,10 +415,10 @@ def draft_single_section(state: dict) -> dict:
 
     changes_block = "\n\n".join(assigned)
 
-    draft_prompt = f"""You are an expert in DFARS regulations. Implement the changes
-assigned to this section into its text.
+    draft_prompt = f"""Can you please implement the changes mandated by the following NDAA section into the following DFARS section.
 
-Following is the NDAA section that mandates these changes:
+The NDAA section that mandates these changes:
+
 <NDAA_SECTION>
 {ndaa_text}
 </NDAA_SECTION>
@@ -427,22 +431,24 @@ EXISTING DFARS TEXT:
 {section['before']}
 \"\"\"
 
-Instructions:
 - Implement EVERY change listed above, and ONLY those changes.
 - Make the MINIMUM edits necessary. Preserve all existing text verbatim unless a
   listed change requires modifying it.
-- Return the COMPLETE revised section text with the changes applied inline.
+- Return the COMPLETE revised section text.
 - Do NOT rephrase, reformat, or reorder existing text that is not changing.
 """
     llm = _get_llm(temperature=0.0, max_tokens=16000).with_structured_output(SectionDraft)
     result: SectionDraft = llm.invoke([
         SystemMessage(
             content=(
-                "You are a DFARS drafter. Your paramount rule is MINIMAL EDITING: "
-                "preserve every word of existing text that is not directly contradicted. "
+                "You are an expert in drafting DFARS regulations. You will be given an NDAA section,"
+                "a list of changes (summarized after fetching more context from cited references)"
+                "and a DFARS section that these changes need to be implemented in. Your job is to draft"
+                "the DFARS section implementing these changes."
+                "Follow the FAR/DFARS Drafting Guide conventions below:\n\n" + _DRAFTING_GUIDE +
+                "\n\nPreserve every word of existing text that is not directly contradicted. "
                 "Implement only the changes assigned to this section. "
-                "Return the full revised section text only.\n\n"
-                "Follow the FAR/DFARS Drafting Guide conventions below:\n\n" + _DRAFTING_GUIDE
+                "Return the full revised section text only. No extra comments or explanations.\n\n"
             )
         ),
         HumanMessage(content=draft_prompt),

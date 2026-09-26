@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 from typing import Literal, Optional
@@ -98,6 +99,11 @@ def extract_citations(doc: dict) -> Citations:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Extract citations from NDAA sections with an LLM.")
+    parser.add_argument("--replace", action="store_true",
+                        help="Re-extract citations for all sections, including ones already done.")
+    args = parser.parse_args()
+
     mongo_client = getMongoClient()
     db_name = "ndaa_dfars"
     collection_name = "ndaas"
@@ -105,6 +111,8 @@ if __name__ == "__main__":
     for year in range(2010, 2026):
         tqdm.write(f"Extracting citations for {year}")
         docs = get_docs_by_year(mongo_client, db_name, collection_name, year)
+        if not args.replace:
+            docs = [d for d in docs if not isinstance(d["extracted_citations"], list)]
         for doc in tqdm(docs):
             try:
                 citations = extract_citations(doc)

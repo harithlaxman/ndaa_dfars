@@ -1,14 +1,18 @@
 """
-Baseline NDAA -> DFARS Drafting Framework
-=========================================
-A deliberately dumb baseline for the 1:N framework2 pipeline. For each NDAA it
-makes ONE LLM call: hand the model the NDAA text plus every affected DFARS node
-(rolled up to section units), and ask it, for each node, how it changes
-(added/modified/deleted) and its full revised text. No change manifest, no
+Framework1 NDAA -> DFARS Drafting Framework
+===========================================
+A single-call NDAA -> DFARS drafter. For each NDAA it makes ONE LLM call: hand the
+model the NDAA text, the section's resolved external citations/references, and every
+affected DFARS node (rolled up to section units), and ask it, for each node, how it
+changes (added/modified/deleted) and its full revised text. No change manifest, no
 delegation, no per-section fan-out, no reconciliation.
 
+It is the baseline plus one thing: the external citation context produced by
+pipeline/fetch_reference_context.py is folded into the drafting prompt, so we can
+measure what resolving those cross-references alone buys.
+
 Its only purpose is to measure how much framework2's machinery actually buys us.
-Unlike framework2's per-node output, the baseline result is saved per NDAA as
+Unlike framework2's per-node output, the framework1 result is saved per NDAA as
 three concatenated, section-labeled blobs -- `before` (original text), `draft`
 (the model's output), and `after` (ground truth) -- so a whole-draft eval can
 compare `draft` against `after`. Deleted sections render as "[REMOVED]".
@@ -17,6 +21,9 @@ Inputs:
   - data/dfars_diff_all.json: per NDAA (year, section), the implementing DFARS
     case(s) and the before/after text of every changed DFARS node. Changed nodes
     are rolled up to their enclosing SECTION via framework2's _group_sections.
+  - pipeline/out/reference_context_fr_cases.json: the resolved external citations
+    per NDAA section (from pipeline/fetch_reference_context.py), keyed by
+    "<year>_<section>". Optional -- if absent, framework1 degrades to the baseline.
   - Mongo (db "ndaa_dfars", collection "ndaas"): the NDAA section's full statutory
     text, fetched per NDAA. Read-only.
 """
@@ -35,21 +42,26 @@ from langchain_core.messages import HumanMessage, SystemMessage
 # Paths / imports
 # ---------------------------------------------------------------------------
 
-_BASELINE_DIR = Path(__file__).resolve().parent
-_FRAMEWORK2_DIR = _BASELINE_DIR.parent / "framework2"
-_PIPELINE_DIR = _BASELINE_DIR.parents[1]   # pipeline/ -- for `agents.*` imports
-_REPO_ROOT = _BASELINE_DIR.parents[2]      # ndaa_dfars/ -- for `utils.*` and data/
+_FRAMEWORK1_DIR = Path(__file__).resolve().parent
+_FRAMEWORK2_DIR = _FRAMEWORK1_DIR.parent / "framework2"
+_PIPELINE_DIR = _FRAMEWORK1_DIR.parents[1]   # pipeline/ -- for `agents.*` imports
+_REPO_ROOT = _FRAMEWORK1_DIR.parents[2]      # ndaa_dfars/ -- for `utils.*` and data/
 sys.path.insert(0, str(_PIPELINE_DIR))
 sys.path.insert(0, str(_REPO_ROOT))
 
-# Reuse framework2's node grouping so the baseline draws the exact same drafting units.
+# Reuse framework2's node grouping so framework1 draws the exact same drafting units.
 from agents.framework2.agent import _group_sections  # noqa: E402
-from agents.baseline.schemas import BaselineDraft  # noqa: E402
+from agents.framework1.schemas import Framework1Draft  # noqa: E402
 from utils.mongo_utils import getMongoClient, get_doc_by_year_section  # noqa: E402
 
 _DATA_DIR = _REPO_ROOT / "data"
 _DIFF_FILE = _DATA_DIR / "dfars_diff_all.json"
 _DRAFTING_GUIDE = (_PIPELINE_DIR / "far_drafting_guide.md").read_text(encoding="utf-8")
+# Resolved external citations/references per NDAA section (from
+# pipeline/fetch_reference_context.py), keyed by "<year>_<section>". This is what
+# distinguishes framework1 from the baseline: the same single drafting call, but
+# with each section's external dependencies resolved and folded into the prompt.
+_REFERENCE_CONTEXT_FILE = _PIPELINE_DIR / "out" / "reference_context_fr_cases.json"
 
 DB = "ndaa_dfars"
 NDAAS = "ndaas"
@@ -80,22 +92,39 @@ def _get_llm(temperature: float = 0.0) -> AzureChatOpenAI:
 # ---------------------------------------------------------------------------
 
 
-def load_baseline_groups() -> list[dict]:
+def load_framework1_groups() -> list[dict]:
     """Build one group per NDAA from data/dfars_diff_all.json.
 
-    Unlike framework2, the baseline does NOT batch sections into fives -- every
+    Unlike framework2, framework1 does NOT batch sections into fives -- every
     DFARS section for an NDAA stays in a single group so the one LLM call sees the
     NDAA and all its nodes together.
 
     Returns a list of dicts, each:
         {
           "ndaa": {"year": str, "section": str, "header": str, "text": str},
-          "dfars_sections": [{"section", "part", "subpart", "before", "after"}, ...]
+          "dfars_sections": [{"section", "part", "subpart", "before", "after"}, ...],
+          "dependencies": [{"reference": str, "explanation": str}, ...]
         }
     """
 
     with open(_DIFF_FILE) as f:
         diff: dict = json.load(f)
+
+    # Resolved external references per NDAA section, keyed by "<year>_<section>".
+    # Optional: if the context file isn't there yet, framework1 still runs -- it
+    # just degrades to the baseline (no external citation context in the prompt).
+    refs_by_id: dict[str, list[dict]] = {}
+    if _REFERENCE_CONTEXT_FILE.exists():
+        with open(_REFERENCE_CONTEXT_FILE) as f:
+            refs_by_id = {
+                s["ndaa_id"]: s.get("dependencies", [])
+                for s in json.load(f).get("sections", [])
+            }
+    else:
+        print(
+            f"  warning: no reference context at {_REFERENCE_CONTEXT_FILE}; "
+            "drafting without external citation context"
+        )
 
     client = getMongoClient()
     groups: list[dict] = []
@@ -132,6 +161,7 @@ def load_baseline_groups() -> list[dict]:
                     "text": ndaa_section.get("text", ""),
                 },
                 "dfars_sections": dfars_secs,
+                "dependencies": refs_by_id.get(f"{year}_{section}", []),
             })
     finally:
         client.close()
@@ -180,7 +210,17 @@ def _blob(items: list[tuple[str, str]]) -> str:
     return "\n\n".join(f"{sec}\n{text.strip()}" for sec, text in items)
 
 
-def run_baseline(group: dict) -> dict:
+def _format_dependencies(deps: list[dict]) -> str:
+    """Render resolved external references as a compact reference -> explanation list."""
+    lines = [
+        f"- {d.get('reference', '').strip()}: {d.get('explanation', '').strip()}"
+        for d in deps
+        if d.get("reference") or d.get("explanation")
+    ]
+    return "\n".join(lines) if lines else "(no external references resolved)"
+
+
+def run_framework1(group: dict) -> dict:
     """One LLM call: NDAA + all affected DFARS nodes -> revised node text.
 
     Returns the per-NDAA result as concatenated, section-labeled blobs plus the
@@ -190,6 +230,7 @@ def run_baseline(group: dict) -> dict:
     """
     ndaa = group["ndaa"]
     sections = group["dfars_sections"]
+    dependencies = group.get("dependencies", [])
 
     nodes_block = "\n\n".join(
         f"[{i}] SECTION {s['section']}\n"
@@ -201,6 +242,10 @@ def run_baseline(group: dict) -> dict:
 \"\"\"
 {ndaa['text']}
 \"\"\"
+
+EXTERNAL CONTEXT (the section's citations and references, resolved -- each is what
+the cited authority says and what this NDAA section actually changes about it):
+{_format_dependencies(dependencies)}
 
 Below are the list of DFARS sections that might be impacted by the NDAA section.
 
@@ -215,8 +260,8 @@ new section with a new number per the Drafting Guide. Preserve all existing text
 the NDAA does not require changing.
 """
 
-    llm = _get_llm().with_structured_output(BaselineDraft)
-    result: BaselineDraft = llm.invoke([
+    llm = _get_llm().with_structured_output(Framework1Draft)
+    result: Framework1Draft = llm.invoke([
         SystemMessage(content=_SYSTEM),
         HumanMessage(content=prompt),
     ])
@@ -264,13 +309,13 @@ if __name__ == "__main__":
     # environment (getMongoClient also calls load_dotenv()).
     load_dotenv(_FRAMEWORK2_DIR / ".env")
 
-    parser = argparse.ArgumentParser(description="Baseline NDAA -> DFARS drafter")
+    parser = argparse.ArgumentParser(description="Framework1 NDAA -> DFARS drafter")
     parser.add_argument("--limit", type=int, default=None, help="Max NDAAs to process")
     parser.add_argument("--output", type=str, default=None, help="Output JSON path")
     args = parser.parse_args()
 
-    print("Loading NDAA groups (baseline) ...")
-    groups = load_baseline_groups()
+    print("Loading NDAA groups (framework1) ...")
+    groups = load_framework1_groups()
     print(f"Found {len(groups)} NDAAs")
 
     if args.limit:
@@ -283,7 +328,7 @@ if __name__ == "__main__":
         print(f"\n[{idx}/{len(groups)}] NDAA {ndaa['year']} s{ndaa['section']} -> {n} DFARS section(s)")
 
         try:
-            drafted = run_baseline(group)
+            drafted = run_framework1(group)
             results.append({
                 "ndaa_year": ndaa["year"],
                 "ndaa_section": ndaa["section"],
@@ -304,7 +349,7 @@ if __name__ == "__main__":
             })
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = args.output or str(_DATA_DIR / "results" / f"pipeline_baseline_results_{ts}.json")
+    out_path = args.output or str(_DATA_DIR / "results" / f"pipeline_framework1_results_{ts}.json")
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)

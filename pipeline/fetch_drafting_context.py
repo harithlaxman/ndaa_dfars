@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""Brief a DFARS drafter on one NDAA section: gather the *context* it needs, not a change list.
+"""Brief a DFARS drafter on one NDAA section by resolving its external context.
 
-This is a sibling of ``fetch_context.py``. Where that stage decomposes a section into atomic
-CHANGE MANIFESTS (the discrete edits to make), this stage answers a different question: given
-that some agent now has to draft the DFARS implementation of this NDAA section, what supporting
-context does it need that the bare NDAA + DFARS "before" text does not already give it?
+NDAA sections are dense statutory text that rarely stand on their own: they amend a U.S. Code
+section, point back to an earlier NDAA, or lean on a public law / Statutes-at-Large citation.
+A downstream agent then has to draft the DFARS implementation of the section — but it can't do
+that well while those cross-references are still unresolved and the requirement is buried in
+legalese.
 
-So it runs the same research loop (GovInfo text fetchers, an "other NDAA section" lookup, and a
-DFARS context search) but synthesizes the findings into a DRAFTING CONTEXT PACK: a plain-English
-overview, the resolved statutory backdrop behind the section's cross-references, the existing
-DFARS provisions the implementation has to fit against, the defined terms to use consistently,
-and concrete drafting considerations. It deliberately does NOT enumerate the changes — that is
-``fetch_context.py``'s job, and a drafting agent can consume both side by side.
+This stage closes that gap. It runs a research loop over the GovInfo text fetchers and an
+"other NDAA section" lookup to pull in exactly the external sources the section references, then
+distills the result into a small SECTION BRIEF: a plain-English overview of what the section
+requires (the logic, stripped of statutory language, with the resolved cross-references folded in)
+and the discrete requirements it imposes (each tagged as an addition, modification, or deletion).
+It deliberately stops there — it does NOT decide where the change belongs in DFARS or how to draft
+it; that is the downstream drafting agent's job.
 
-Reads the section from Mongo (``ndaa_dfars.ndaas``); writes the context pack as JSON to
+Reads the section from Mongo (``ndaa_dfars.ndaas``); writes the brief as JSON to
 ``pipeline/out/``. Never writes to Mongo.
+
+Run as a script, it briefs every NDAA section the DFARS diff covers: the batch's
+(year, section) list is sourced from ``data/dfars_diff_all.json`` (the same file
+framework2 consumes), so brief coverage lines up with what the drafting pipeline
+looks up.
 
 Usage:
     uv run python pipeline/fetch_drafting_context.py
@@ -22,15 +29,13 @@ Usage:
 
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-# Reuse the research tooling, DFARS-version pinning, and CSV helpers from the manifest
-# stage rather than duplicating ~200 lines of tool schemas. Both files live in pipeline/,
-# so the script's own directory is already on sys.path; add it explicitly to be safe.
+# Reuse the research tooling, prompt builder, and CSV helpers from the manifest stage rather
+# than duplicating ~200 lines of tool schemas. Both files live in pipeline/, so the script's
+# own directory is already on sys.path; add it explicitly to be safe.
 _PIPELINE_DIR = Path(__file__).resolve().parent
 if str(_PIPELINE_DIR) not in sys.path:
     sys.path.insert(0, str(_PIPELINE_DIR))
@@ -46,62 +51,30 @@ from utils.openai import (  # noqa: E402
 
 OUT_DIR = fc.OUT_DIR
 DATA_DIR = fc.DATA_DIR
+DIFF_FILE = DATA_DIR / "dfars_diff_all.json"
 DB = fc.DB
 NDAAS = fc.NDAAS
 
 
-# ─── Drafting-context schema ────────────────────────────────────────────────────────
+# ─── Section-brief schema ─────────────────────────────────────────────────────────────
 
-ReferenceKind = Literal[
-    "us_code",
-    "public_law",
-    "statutes_at_large",
-    "ndaa",
-    "far",
-    "dfars",
-    "other",
-]
+class Requirement(BaseModel):
+    """A single obligation the section imposes, classified by the kind of change it makes."""
 
-
-class ResolvedReference(BaseModel):
-    """A cross-reference the section leans on, resolved into something the drafter can use."""
-
-    citation: str = Field(
-        description='Normalized authority, e.g. "10 U.S.C. 2304" or "Section 847 of the NDAA for FY2017"'
-    )
-    kind: ReferenceKind = Field(description="What sort of authority this citation points to")
-    summary: str = Field(
+    change_type: fc.ChangeType = Field(
         description=(
-            "Plain-English summary of what the referenced text actually says — enough that the "
-            "drafter understands the backdrop without fetching it themselves."
+            'How this requirement changes existing law or policy: "addition" creates something '
+            'that did not exist before (a new requirement, authority, program, definition, or '
+            'report); "modification" alters something that already exists (amended text, an '
+            'adjusted threshold, a revised definition, narrowed or broadened scope); "deletion" '
+            "repeals or removes an existing one."
         )
     )
-    relevance: str = Field(
-        description="Why this matters for drafting the DFARS implementation — how it bears on the change"
-    )
-
-
-class DfarsTouchpoint(BaseModel):
-    """An existing DFARS provision the implementation has to fit against."""
-
-    section_number: str = Field(description='DFARS section/clause number, e.g. "252.204-7012"')
-    heading: str = Field(default="", description="Section heading, if known")
-    relationship: str = Field(
+    description: str = Field(
         description=(
-            "How this existing provision relates to the work: a candidate place to implement the "
-            "change, an adjacent provision the new text must stay consistent with, the host of a "
-            "definition to cross-reference, etc."
+            "The obligation in plain English — the concrete requirement with its triggers, "
+            "thresholds, and exceptions folded in, separated from the statutory prose."
         )
-    )
-
-
-class KeyTerm(BaseModel):
-    """A defined term the drafter must carry through consistently."""
-
-    term: str = Field(description="The defined term")
-    definition: str = Field(description="Its operative meaning, in plain English")
-    source: Optional[str] = Field(
-        default=None, description="Where the term is defined (statute/regulation), if identifiable"
     )
 
 
@@ -112,89 +85,85 @@ class SectionContext(BaseModel):
     section_heading: str
     overview: str = Field(
         description=(
-            "Plain-English briefing: what this NDAA section is doing and what a DFARS "
-            "implementation of it has to accomplish. Orient the drafter, don't restate the statute."
+            "Plain-English essence of the section: what it requires and the logic behind it, "
+            "with the statutory language stripped away. Orient the reader; don't restate the "
+            "statute line by line. Fold in how the cited authorities fit together where that is "
+            "needed to make sense of the section."
         )
     )
-    statutory_background: str = Field(
-        default="",
-        description=(
-            "How the cited authorities fit together — the statutory backdrop a drafter needs to "
-            "make sense of the amendment (what is being amended, by what, and why it's structured "
-            "the way it is). Empty if the section stands on its own."
-        ),
-    )
-    resolved_references: list[ResolvedReference] = Field(
-        default_factory=list,
-        description="Cross-references resolved into usable summaries (from the research tools)",
-    )
-    dfars_touchpoints: list[DfarsTouchpoint] = Field(
-        default_factory=list,
-        description="Existing DFARS provisions the implementation must fit against or build on",
-    )
-    key_terms: list[KeyTerm] = Field(
-        default_factory=list,
-        description="Defined terms the drafter must use consistently",
-    )
-    drafting_considerations: list[str] = Field(
+    requirements: list[Requirement] = Field(
         default_factory=list,
         description=(
-            "Concrete, actionable notes for the drafter: where the change likely belongs, "
-            "conventions to match, pitfalls to avoid, cross-references to wire up."
+            "The discrete obligations the section imposes, one per entry, each classified as an "
+            "addition, modification, or deletion."
         ),
     )
-    open_questions: list[str] = Field(
-        default_factory=list,
-        description="Genuine ambiguities the drafter will have to resolve",
-    )
+
+
+# ─── Tools (external fetchers only) ───────────────────────────────────────────────────
+
+# Reuse the manifest stage's research tools, minus the DFARS semantic search: this stage only
+# resolves *external* sources and distills the section's logic — deciding where/how the change
+# lands in DFARS is the downstream drafting agent's job.
+TOOLS = [t for t in fc.TOOLS if t["name"] != "get_dfars_context"]
+DISPATCH = {k: v for k, v in fc.DISPATCH.items() if k != "get_dfars_context"}
 
 
 # ─── Prompt + driver ────────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are a legal research analyst for U.S. defense acquisition regulation.
+SYSTEM_PROMPT = """You are a legal research analyst for U.S. Defense Acquisition Regulation.
 
 You are given the text of one section of a National Defense Authorization Act (NDAA). Downstream,
 a drafting agent will implement this section inside the Defense Federal Acquisition Regulation
-Supplement (DFARS). That agent already has the NDAA text and the current ("before") text of the
-DFARS sections it will edit. Your job is to assemble the EXTRA CONTEXT it needs around that — a
-DRAFTING CONTEXT PACK — so it can draft accurately without going and resolving every cross-
-reference itself.
+Supplement (DFARS). The NDAA text often contains references to external documents like U.S. Code,
+Public Law, Statutes at Large, other NDAAs, or even other sections of the same NDAA. This makes it
+difficult for that drafter to understand the full requirement without resolving these indirect
+references and seeing past the statutory language.
 
-You are NOT enumerating the changes. Do not produce a change-by-change list of edits; a separate
-stage does that. Your deliverable is background and orientation for the drafter.
+Your job is to do exactly that — resolve the external context and extract the logic — so the
+downstream agent receives the section's essence along with the raw NDAA section. You do NOT decide where
+the change belongs in DFARS or how to draft it; that is the drafting agent's job.
 
 Work in two phases:
 
-1. RESEARCH. The section usually cannot be understood on its own. Before writing, call the
-   provided tools to resolve any context you need:
-   - When the section amends or references a U.S. Code section, fetch it (get_usc_section) so you
-     understand what the text being amended actually says.
+1. RESEARCH. If the section cannot be understood on its own, call the
+   provided tools to resolve any external reference you need:
+   - When the section amends or references a U.S. Code section, fetch it (get_usc_section(title, section, year)) so you
+     understand what the text being amended actually says. Always prefer calling the tool with
+     the section number without any suffixes  (e.g., ``2403`` and not ``2403-1``). For the year, use the NDAA year.
    - When it references another NDAA (commonly "section NNN of the National Defense Authorization
      Act for Fiscal Year YYYY"), fetch that section (get_ndaa_section, year=YYYY, section=NNN).
    - When it references a public law or a Statutes at Large citation, fetch it.
-   - Use get_dfars_context to find the existing DFARS provisions this implementation will touch or
-     have to stay consistent with — these become your dfars_touchpoints.
-   Fan out to as many tool calls as you need, but only those you actually need.
+   Fan out to as many tool calls as you need, but only if its needed to understand the NDAA section completely.
+   If a tool call fails or comes back empty, retry it once with corrected arguments when the
+   problem looks like a bad argument. If it still fails — or every tool call fails — do not abandon
+   the brief: fall back to what the NDAA text itself states and flag the gap (see below).
 
-2. SYNTHESIZE. Turn what you gathered into the context pack:
-   - overview: brief the drafter in plain English on what the section does and what implementing it
-     in DFARS has to accomplish. Orient them; don't restate the statute line by line.
-   - statutory_background: explain how the cited authorities fit together — what is being amended,
-     by what, and the structure behind it — so the amendment makes sense. Leave empty if the
-     section truly stands alone.
-   - resolved_references: one entry per cross-reference you resolved, each with a plain-English
-     summary of what it says and why it matters here. This is the payoff of the research step —
-     the drafter should not need to re-fetch these.
-   - dfars_touchpoints: the existing DFARS sections/clauses the implementation must fit against,
-     each with how it relates (candidate implementation site, provision to stay consistent with,
-     host of a definition to cross-reference, etc.).
-   - key_terms: defined terms the drafter must carry through consistently, with their operative
-     meaning and source.
-   - drafting_considerations: concrete, actionable notes — where the change likely belongs, DFARS
-     conventions to match, pitfalls, cross-references to wire up.
-   - open_questions: genuine ambiguities the drafter will have to resolve.
+2. SYNTHESIZE. Turn what you gathered into the section brief:
+   - overview: brief the drafter in plain English on what the section requires and the logic
+     behind it, with statutory language stripped away. Orient them; don't restate the statute
+     line by line. Fold what you learned from the resolved references into this overview — where
+     it helps, explain how the cited authorities fit together — rather than listing them out.
+   - requirements: the discrete obligations the section imposes — one per entry — pulling the
+     concrete requirements, triggers, thresholds, and exceptions out of the prose. Classify each
+     one's change_type as exactly one of:
+       • "addition": creates something that did not exist before — a new requirement, prohibition,
+         authority, program, pilot, definition, or report obligation.
+       • "modification": alters something that already exists — amended text, an adjusted threshold
+         or dollar figure, a revised definition, or narrowed/broadened scope.
+       • "deletion": removes or repeals an existing requirement, authority, or provision.
 
-After researching, output the context pack in the required structured format."""
+When you could NOT resolve a reference a requirement depends on (a tool failed, or every tool call
+failed), still produce that requirement from the NDAA text alone:
+   - change_type: infer it from the NDAA's own amendatory language — "amended", "striking",
+     "inserting" → modification; "repealed", "struck out" → deletion; "established", "shall
+     submit", a new prohibition, authority, or report → addition.
+   - description: state the obligation as far as the NDAA's own words support it — capture the
+     amendatory instruction or directive itself in plain English (e.g. "Amends <cited section> by
+     striking X and inserting Y"). Do NOT invent the contents of the unresolved reference, and do
+     NOT drop the requirement.
+
+After researching, output the section brief in the required structured format."""
 
 
 def process_section(llm, doc: dict) -> SectionContext:
@@ -203,14 +172,15 @@ def process_section(llm, doc: dict) -> SectionContext:
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": fc.build_user_prompt(doc)},
     ]
-    conversation = run_tool_loop(llm, input_messages, fc.TOOLS, fc.DISPATCH)
+    conversation = run_tool_loop(llm, input_messages, TOOLS, DISPATCH)
     conversation.append(
         {
             "role": "user",
             "content": (
-                "Now output the drafting context pack for this section in the required structured "
-                "format, using the context you gathered. Remember: orient and brief the drafter — "
-                "do not enumerate the individual changes."
+                "Now output the section brief in the required structured format, using the "
+                "context you gathered: the plain-English overview and the discrete requirements "
+                "(each classified as an addition, modification, or deletion). If any reference "
+                "could not be resolved, still include the requirement from the NDAA text."
             ),
         }
     )
@@ -241,11 +211,31 @@ def run_one(year: str, section: str) -> None:
     print(f"Wrote {out_path}")
 
 
-def run_csv(csv_path: Path, out_name: str) -> None:
-    """Process every unique NDAA section in a CSV into one combined JSON file."""
-    pairs = fc.csv_sections(csv_path)
-    effective_dates = fc.csv_effective_dates(csv_path)
-    print(f"{csv_path.name} has {len(pairs)} unique NDAA sections")
+def diff_sections(diff_path: Path) -> list[tuple[str, str]]:
+    """Read the DFARS diff; return de-duplicated (ndaa_year, ndaa_section) pairs in file order.
+
+    These are exactly the NDAA sections framework2 looks a brief up for (it keys
+    dfars_diff_all.json entries by "<year>_<section>"), so sourcing pairs here keeps
+    brief coverage aligned with what the drafting pipeline consumes.
+    """
+    diff = json.loads(diff_path.read_text())
+    pairs: list[tuple[str, str]] = []
+    seen = set()
+    for entry in diff.get("sections", []):
+        year = str(entry.get("ndaa_year", "")).strip()
+        section = str(entry.get("ndaa_section", "")).strip()
+        if not year or not section:
+            continue
+        key = (year, section)
+        if key not in seen:
+            seen.add(key)
+            pairs.append(key)
+    return pairs
+
+
+def run_pairs(pairs: list[tuple[str, str]], out_name: str) -> None:
+    """Process a list of (year, section) NDAA sections into one combined JSON file."""
+    print(f"Processing {len(pairs)} unique NDAA sections")
     llm = connect_to_openai()
     client = fc._client()
 
@@ -257,11 +247,6 @@ def run_csv(csv_path: Path, out_name: str) -> None:
             print(f"[{i}/{len(pairs)}] {tag}: not found in Mongo, skipping")
             not_found.append(tag)
             continue
-        # Search the DFARS snapshot in effect just before this section's rule took
-        # effect; None falls back to the latest snapshot. get_dfars_context reads this
-        # module-global on fetch_context, so set it there.
-        eff = effective_dates.get((year, section))
-        fc._dfars_version = fc._dfars_version_before(eff) if eff else None
         print(f"[{i}/{len(pairs)}] {tag}: {doc['section'].get('heading', '')}")
         try:
             result = process_section(llm, doc)
@@ -287,9 +272,10 @@ def run_csv(csv_path: Path, out_name: str) -> None:
     )
 
 
-def main() -> None:
-    run_csv(DATA_DIR / "fr_cases.csv", "drafting_context_fr_cases.json")
-
+def run_csv(csv_path: Path, out_name: str) -> None:
+    """Process every unique NDAA section in a CSV into one combined JSON file."""
+    run_pairs(fc.csv_sections(csv_path), out_name)
 
 if __name__ == "__main__":
-    main()
+    run_pairs(diff_sections(DIFF_FILE), "drafting_context_fr_cases.json")
+    # run_one("2024", "865")

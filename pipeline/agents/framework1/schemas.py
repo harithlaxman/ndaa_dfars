@@ -1,6 +1,6 @@
-"""Structured-output schemas for the baseline drafting framework.
+"""Structured-output schemas for the framework1 drafting framework.
 
-The baseline hands the model the NDAA text plus every affected DFARS node and asks
+Framework1 hands the model the NDAA text plus every affected DFARS node and asks
 it, for each node, to return how it changes (added/modified/deleted) and its full
 revised text -- no manifest, no per-node edit list.
 """
@@ -39,7 +39,7 @@ class SectionDraft(BaseModel):
     )
 
 
-class BaselineDraft(BaseModel):
+class Framework1Draft(BaseModel):
     """All revised nodes for one NDAA."""
 
     sections: list[SectionDraft]

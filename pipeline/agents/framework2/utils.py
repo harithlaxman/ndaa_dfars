@@ -77,6 +77,7 @@ def get_single_ndaa_allowed() -> dict[tuple[str, str], set[str]]:
 
 def expected_section_units(
     single_ndaa: bool = True,
+    require_manifest: bool = True,
 ) -> dict[tuple[str, str], dict[str, dict[str, str]]]:
     """The DFARS section units the pipeline was *expected* to draft per NDAA.
 
@@ -89,13 +90,19 @@ def expected_section_units(
     >25 units skipped -- but needs no Mongo (the NDAA statutory text that
     ``load_ndaa_groups`` fetches isn't needed to know *which* sections were due).
 
+    Set ``single_ndaa=False`` to drop the single-NDAA-case filter and
+    ``require_manifest=False`` to drop the manifest requirement (include every
+    NDAA section in the diff). The pure-addition and >25-unit guards always apply.
+
     Used by eval.py to penalize required sections a run failed to emit: anything
     in here but absent from a run's ``section_drafts`` is a (recall) miss.
     """
     with open(DIFF_PATH) as f:
         diff = json.load(f)
-    with open(MANIFEST_PATH) as f:
-        manifest_ids = {s["ndaa_id"] for s in json.load(f).get("sections", [])}
+    manifest_ids: set[str] = set()
+    if require_manifest:
+        with open(MANIFEST_PATH) as f:
+            manifest_ids = {s["ndaa_id"] for s in json.load(f).get("sections", [])}
 
     allowed = get_single_ndaa_allowed() if single_ndaa else None
 
@@ -103,7 +110,7 @@ def expected_section_units(
     for entry in diff.get("sections", []):
         year = str(entry["ndaa_year"])
         section = str(entry["ndaa_section"])
-        if f"{year}_{section}" not in manifest_ids:
+        if require_manifest and f"{year}_{section}" not in manifest_ids:
             continue
 
         changes: list[dict] = []

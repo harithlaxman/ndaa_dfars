@@ -20,11 +20,13 @@ def get_ndaa_htmls(plaw_df: pd.DataFrame):
         
         req_url = PLAW_URL + congresnum + PLAW_TYPE + lawnum + PLAW_LINK_TYPE
         
-        response = requests.get(req_url)
-        if (response.status_code == 200):
-            ndaa_htmls[year] = {"html": response.text, "plaw": plaw}
-        else:
-            print("couldn't fetch for year: ", year)
+        try:
+            response = requests.get(req_url, timeout=60)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"couldn't fetch for year {year}: {e}")
+            continue
+        ndaa_htmls[year] = {"html": response.text, "plaw": plaw}
     
     return ndaa_htmls
 
@@ -37,7 +39,7 @@ def format_htmls(ndaa_htmls):
         for item in parsed:
             section_num = item["section"]
             id = f"{year}_{section_num}"
-            if id in ids:
+            while id in ids:
                 id += "_"
             ids.add(id)
             doc = {

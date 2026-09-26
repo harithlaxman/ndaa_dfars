@@ -1,0 +1,1672 @@
+{
+  "n_sections": 74,
+  "n_not_found": 1,
+  "n_failed": 4,
+  "not_found": [
+    "2021_831(a)(2)"
+  ],
+  "failed": [
+    "2021_806",
+    "2020_2821",
+    "2019_888",
+    "2012_815"
+  ],
+  "sections": [
+    {
+      "ndaa_id": "2024_2881",
+      "fiscal_year": 2024,
+      "section_number": "2881",
+      "section_heading": "INCREASE OF LIMITATION ON FEE FOR ARCHITECTURAL AND ENGINEERING SERVICES PROCURED BY MILITARY DEPARTMENTS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 7540(b)",
+          "explanation": "Previously limited the Army's fee for architectural and engineering services to 6 percent of the estimated project cost; this amendment raises the limit to 10 percent."
+        },
+        {
+          "reference": "10 U.S.C. 8612(b)",
+          "explanation": "Previously limited the Navy's (and Marine Corps') fee for architectural and engineering services to 6 percent of the estimated project cost; this amendment raises the limit to 10 percent."
+        },
+        {
+          "reference": "10 U.S.C. 9540(b)",
+          "explanation": "Previously limited the Air Force's fee for architectural and engineering services to 6 percent of the estimated project cost; this amendment raises the limit to 10 percent."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2024_872",
+      "fiscal_year": 2024,
+      "section_number": "872",
+      "section_heading": "EXTENSION OF PILOT PROGRAM TO INCENTIVIZE CONTRACTING WITH EMPLOYEE-OWNED BUSINESSES.",
+      "dependencies": [
+        {
+          "reference": "Section 874 of the National Defense Authorization Act for Fiscal Year 2022 (10 U.S.C. 3204 note)",
+          "explanation": "Section 874 established a pilot program allowing DoD to use noncompetitive procedures for follow-on contracts to employee-owned (ESOP) businesses that performed satisfactorily. This amendment (1) requires the Secretary of Defense to prescribe regulations for the pilot, (2) clarifies the types of contracts/products/services included, (3) applies the sole-source follow-on contract limitation to each contract, (4) creates additional exceptions to the 50% subcontracting cap (allowing more flexibility in subcontracting with other qualifying ESOP businesses and for required materials), and (5) extends the expiration of the pilot program from 5 to 8 years after the 2022 NDAA's enactment."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2024_865",
+      "fiscal_year": 2024,
+      "section_number": "865",
+      "section_heading": "<<NOTE: Deadline. Requirements. Contracts. 10 USC 3301 note.>> CONSIDERATION OF THE PAST PERFORMANCE OF AFFILIATE COMPANIES OF SMALL BUSINESS CONCERNS.",
+      "dependencies": [
+        {
+          "reference": "section 215.305 of the Defense Federal Acquisition Supplement (DFARS)",
+          "explanation": "DFARS 215.305 governs the evaluation of offerors' past performance information in negotiated acquisitions for DoD contracts. This NDAA section requires that DFARS be amended so that, when small businesses bid on DoD contracts, the evaluation process must consider the past performance of their affiliate companies if relevant. This changes previous practice by explicitly requiring affiliate performance to be taken into account alongside the small business's own record."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2024_853",
+      "fiscal_year": 2024,
+      "section_number": "853",
+      "section_heading": "MODIFICATIONS TO THE PROCUREMENT TECHNICAL ASSISTANCE PROGRAM.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 4951",
+          "explanation": "Amends the definition of 'eligible entity' by replacing 'private, nonprofit organization' with 'nonprofit organization,' thereby broadening program eligibility beyond only private nonprofits. Also adds a new definition for 'business entity' encompassing a variety of legal entity types, including corporations, partnerships, LLCs, consortia, and other organizations."
+        },
+        {
+          "reference": "10 U.S.C. 4954",
+          "explanation": "Restructures the cooperative agreements subsection for clarity, grants the Secretary of Defense authority to waive or modify federal cost-share percentage requirements on a case-by-case basis, eliminates the subsection concerning evaluation of past performance, allows for renumbering of other subsections, and authorizes the Secretary to waive all cost-share restrictions if in the Federal Government's best interest, with a requirement for congressional notification."
+        },
+        {
+          "reference": "10 U.S.C. 4958(c)",
+          "explanation": "Expands the types of technical assistance and education that eligible entities may provide to include compliance with DFARS clause 252.204-7012 and requirements under section 847 of the FY2020 NDAA, specifically relating to cybersecurity and mitigation of foreign ownership/control/influence (FOCI)."
+        },
+        {
+          "reference": "Section 847 of the National Defense Authorization Act for Fiscal Year 2020 (Public Law 116-92; 133 Stat. 1505)",
+          "explanation": "Establishes risk mitigation and disclosure requirements for DoD contractors and subcontractors regarding foreign ownership, control, or influence (FOCI). This amendment authorizes procurement technical assistance providers to help small businesses understand and comply with these requirements."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_1411",
+      "fiscal_year": 2023,
+      "section_number": "1411",
+      "section_heading": "REFORM OF THE STRATEGIC AND CRITICAL MATERIALS STOCK PILING ACT.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 187",
+          "explanation": "Section 187 established the Strategic Materials Protection Board. This NDAA section repeals that section, abolishing the Board and eliminating its functions and references in U.S. Code."
+        },
+        {
+          "reference": "50 U.S.C. 98h-1",
+          "explanation": "Section 10 of the Strategic and Critical Materials Stock Piling Act provided for the Strategic and Critical Materials Board of Directors. This NDAA section amends it in full, restructuring the Board’s composition, specifying its duties (oversight, reporting, annual review functions), adding requirements for Board expertise, expanding reporting and review obligations, and adding new definitions. It also exempts the Board from the Federal Advisory Committee Act’s sunset provision."
+        },
+        {
+          "reference": "50 U.S.C. 98h-2",
+          "explanation": "Section 11 of the Strategic and Critical Materials Stock Piling Act contained reporting requirements. This NDAA section replaces it in full with new quarterly and annual financial reporting to the Board, adds detail to annual reports to Congress, and requires an annual report from the reconstituted Board—expanding both substance and scope of required reports."
+        },
+        {
+          "reference": "50 U.S.C. 98d",
+          "explanation": "Section 5(a)(2) governed when significant changes in stockpile transactions could proceed. This NDAA changes the process to tie permitted transactions to the new Annual Materials and Operations Plan (overseen by the Board) and requires that Board reports and approvals are in place before new transactions can be proposed, aligning process with the new Board structure."
+        },
+        {
+          "reference": "50 U.S.C. 98h-6",
+          "explanation": "Section 15 covered development of domestic sources of strategic materials and reporting. This NDAA amends terminology to reference the new Annual Materials and Operations Plan, requires reports to be submitted by the Stockpile Manager (rather than directly the President), and updates statutory cross-references to the new reporting regime."
+        },
+        {
+          "reference": "10 U.S.C. 4863(g)",
+          "explanation": "Previously referenced the Strategic Materials Protection Board for recommendations relating to buying strategic materials. This NDAA updates the reference to the new Strategic and Critical Materials Board of Directors, aligning the statute with the new Board entity and its authorities."
+        },
+        {
+          "reference": "10 U.S.C. 4872(c)(3)(B)",
+          "explanation": "Previously referenced the Strategic Materials Protection Board for recommendations regarding critical electronic components and materials. The NDAA updates the reference to the new Board of Directors established under 50 U.S.C. 98h-1, ensuring references point to the new governing body."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_856",
+      "fiscal_year": 2023,
+      "section_number": "856",
+      "section_heading": "CODIFICATION OF THE DEPARTMENT OF DEFENSE MENTOR-PROTEGE PROGRAM.",
+      "dependencies": [
+        {
+          "reference": "Section 831 of the National Defense Authorization Act for Fiscal Year 1991 (10 U.S.C. 4901 note prec.)",
+          "explanation": "This original section established the DoD Mentor-Protégé Program. NDAA 2023 Section 856 codifies, relocates, and amends it as a permanent program within title 10 (now §4902), updating requirements, terminology, and statutory references. The former pilot program provisions are transferred and superseded by the new code section."
+        },
+        {
+          "reference": "10 U.S.C. 4901",
+          "explanation": "Section 4901 establishes DoD's small business strategy and management structure. This NDAA section does not amend 4901 itself, but places the newly codified Mentor-Protégé Program at §4902 directly after it, embedding the program within DoD's statutory small business framework."
+        },
+        {
+          "reference": "10 U.S.C. 4902",
+          "explanation": "Section 856 transforms the Mentor-Protégé Program from a pilot to a permanent program by placing it here, makes substantive policy changes (eligibility, thresholds, definitions, duration), updates cross-references, and introduces new requirements for performance data collection, reviews, and definitions."
+        },
+        {
+          "reference": "10 U.S.C. 144",
+          "explanation": "This section establishes the Director of Small Business Programs at DoD, who is charged with establishing new pilot programs and collecting performance data under the amended §4902."
+        },
+        {
+          "reference": "25 U.S.C. 47(a)(2) ('Buy Indian Act')",
+          "explanation": "This updates the cross-reference for authorized DoD mentor-protégé program participation in the Buy Indian Act from an obsolete NDAA citation to the newly codified 10 U.S.C. 4902(c), for clarity in procurement regulations."
+        },
+        {
+          "reference": "15 U.S.C. 637(d)(12)",
+          "explanation": "This paragraph governs reporting and recognition of the DoD mentor-protégé program in the Small Business Act. The amendment updates references to cite §4902 of title 10 and corrects an internal cross-reference from subsection (g) to (f)."
+        },
+        {
+          "reference": "13 C.F.R. § 121.103",
+          "explanation": "This regulation defines 'affiliation' for SBA small business size purposes and is cross-referenced in §4902(n) to define the relationship between mentor and protégé firms under the program."
+        },
+        {
+          "reference": "15 U.S.C. 637(a)(13), (a)(15), (d)(3)(C), (d)(3)(D)",
+          "explanation": "These Small Business Act subsections define Indian tribes, Native Hawaiian Organizations, small businesses owned by disadvantaged individuals, and small businesses owned and controlled by women. The NDAA incorporates these cross-references in §4902(n) for clarity on which firms qualify as 'disadvantaged small business concerns.'"
+        },
+        {
+          "reference": "15 U.S.C. 657a(b)",
+          "explanation": "Defines 'qualified HUBZone small business concern' for federal preference programs. The NDAA uses this definition in §4902(n)."
+        },
+        {
+          "reference": "10 U.S.C. 3014",
+          "explanation": "Defines 'nontraditional defense contractor.' The NDAA incorporates this definition to broaden the types of small businesses eligible as protégés."
+        },
+        {
+          "reference": "29 U.S.C. 206",
+          "explanation": "The federal minimum wage provision, referenced to set compensation standards for employees of organizations defined in §4902(n) as 'qualified organizations employing the severely disabled.'"
+        },
+        {
+          "reference": "41 U.S.C. 8501",
+          "explanation": "Defines 'blind' and 'severely disabled individual' for federal contracting purposes. The NDAA uses this to anchor its definitions for employment-related eligibility of protégés."
+        },
+        {
+          "reference": "10 U.S.C. 2323 (as in effect on March 1, 2018)",
+          "explanation": "Although repealed, this section is referenced by the NDAA as it existed in 2018 to provide a legacy definition for 'historically Black college and university.' The amendment does not adjust the legacy definition but now incorporates it by reference for program eligibility."
+        },
+        {
+          "reference": "20 U.S.C. 1058(b)(3), (4), (5)",
+          "explanation": "These Higher Education Act provisions define the demographic composition criteria for a 'minority institution of higher education,' used in the NDAA for program eligibility."
+        },
+        {
+          "reference": "Chapter 388 of title 10",
+          "explanation": "Refers to DoD’s Procurement Technical Assistance Program, now cross-referenced for purposes of technical assistance and certain reporting and assistance provisions in the amended §4902."
+        },
+        {
+          "reference": "15 U.S.C. 632",
+          "explanation": "Governs the general definition of 'small business concern.' The NDAA cross-references this in §4902(n)."
+        },
+        {
+          "reference": "15 U.S.C. 637(d)",
+          "explanation": "Establishes small business subcontracting participation goals in federal contracting. The NDAA refers to this section in defining 'subcontracting participation goal' for DoD Mentor-Protégé contracts."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_851",
+      "fiscal_year": 2023,
+      "section_number": "851",
+      "section_heading": "MODIFICATION TO THE NATIONAL TECHNOLOGY AND INDUSTRIAL BASE.",
+      "dependencies": [
+        {
+          "reference": "Section 4801(1) of title 10, United States Code",
+          "explanation": "10 U.S.C. § 4801(1) defines the 'national technology and industrial base' as persons and organizations engaged in research, development, production, integration, services, or information technology activities within the United States, the United Kingdom, Australia, and Canada. The NDAA section amends this definition by adding 'New Zealand' to the list, now formally including New Zealand in the national technology and industrial base."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_842",
+      "fiscal_year": 2023,
+      "section_number": "842",
+      "section_heading": "MODIFICATION OF AUTHORITY OF THE DEPARTMENT OF DEFENSE TO CARRY OUT CERTAIN PROTOTYPE PROJECTS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 4022",
+          "explanation": "Section 4022 is the statutory authority for DoD to use 'other transaction' agreements for certain prototype projects and follow-on production. This NDAA section amends it by: (a) removing references to follow-on production contracts/transactions from some threshold/approval requirements and establishing specific heightened written determination and Congressional notification requirements (by a 'covered official') for follow-on awards over $100M; (b) inserting and clarifying definitions, including 'covered official' and by cross-reference, 'service acquisition executive'; and (c) clarifying exemption from competition rules for certain awards and notification in requests for proposal."
+        },
+        {
+          "reference": "10 U.S.C. § 2304",
+          "explanation": "Section 2304 previously set competition requirements for federal contracts under Title 10, but it was repealed and replaced by statutes in chapter 221. The NDAA amendment replaces the outdated reference to section 2304 with chapter 221 to properly align the statute with the current competition requirements."
+        },
+        {
+          "reference": "10 U.S.C. § 101(a)",
+          "explanation": "Section 101(a) defines key terms in Title 10, including 'service acquisition executive.' The NDAA section adds a cross-reference to this definition in section 4022, ensuring that the term is clearly defined and aligned with Title 10's overall statutory definitions for acquisition officials."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_808",
+      "fiscal_year": 2023,
+      "section_number": "808",
+      "section_heading": "<<NOTE: Deadlines.>> USE OF FIXED-PRICE TYPE CONTRACTS FOR CERTAIN MAJOR DEFENSE ACQUISITION PROGRAMS.",
+      "dependencies": [
+        {
+          "reference": "Section 818 of the John Warner National Defense Authorization Act for Fiscal Year 2007 (Public Law 109-364)",
+          "explanation": "Section 818 originally set requirements for selecting contract types for major defense acquisition programs at Milestone B approval. The FY23 NDAA amends it by adding a new subsection (f), which limits the number of low-rate initial production lots to one under certain fixed-price contract conditions, and creates a waiver process for the limitation with congressional notification."
+        },
+        {
+          "reference": "10 USC 4231",
+          "explanation": "This section defines 'low-rate initial production' and specifies how quantities for LRIP are determined at Milestone B for major systems. The NDAA section uses this definition to ensure the new LRIP limitations apply to the same concept as already established in Title 10."
+        },
+        {
+          "reference": "10 USC 4211",
+          "explanation": "This section defines 'milestone decision authority' and their responsibilities in acquisition. The NDAA references the definition to establish who has waiver authority and to clarify powers and reporting under the new subsection."
+        },
+        {
+          "reference": "10 USC 4201",
+          "explanation": "This section defines 'major defense acquisition program' and its exclusions. The NDAA section relies on this definition to limit the new LRIP and contract requirements specifically to qualifying programs."
+        },
+        {
+          "reference": "10 USC 4172(e)",
+          "explanation": "This section defines 'Milestone B approval' as the decision to enter system development and demonstration. The NDAA section applies the new requirements at the point of Milestone B approval as defined here."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_803",
+      "fiscal_year": 2023,
+      "section_number": "803",
+      "section_heading": "DATA REQUIREMENTS FOR COMMERCIAL PRODUCTS FOR MAJOR WEAPON SYSTEMS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 3455",
+          "explanation": "10 U.S.C. § 3455 sets the requirements for treating major weapon systems, subsystems, components, and spare parts as commercial products in DoD procurement. Section 803 of the FY2023 NDAA amends 3455 by clarifying and expanding the data submission obligations when asserting that a subsystem, component, or spare part is 'of a type' commercial, including what comparisons and notifications are required, when redaction is allowed, and the specific types of contracts and subcontracts to which these requirements apply."
+        },
+        {
+          "reference": "41 U.S.C. § 103(1)",
+          "explanation": "41 U.S.C. § 103(1) defines 'commercial product' for federal procurement law as a product customarily used by the public or nongovernmental entities and offered for sale. NDAA section 803 refers to this definition to determine which systems and parts must meet the new commerciality data submission and comparison requirements."
+        },
+        {
+          "reference": "10 U.S.C. § 3703(d)",
+          "explanation": "10 U.S.C. § 3703(d) allows a contracting officer to rely on prior determinations that a product or service is commercial. The amendment in NDAA section 803 applies its new data and notification requirements only where a prior determination of commerciality has not been made as provided in 3703(d)."
+        },
+        {
+          "reference": "10 U.S.C. § 3703(a)(1)",
+          "explanation": "10 U.S.C. § 3703(a)(1) provides exceptions to the requirement for certified cost or pricing data where the price is based on adequate competition or is set by law/regulation. The NDAA’s amendment specifies that certain information requirements only apply to procurements not excepted under this provision."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2023_802",
+      "fiscal_year": 2023,
+      "section_number": "802",
+      "section_heading": "TASK AND DELIVERY ORDER CONTRACTING FOR ARCHITECTURAL AND ENGINEERING SERVICES.",
+      "dependencies": [
+        {
+          "reference": "Section 3406 of title 10, United States Code",
+          "explanation": "Section 3406 sets rules for issuance of task and delivery orders under task order contracts, including competition, fair opportunity, protests, and ombudsman. This NDAA section adds a new subsection (h) to require that task or delivery orders for architectural and engineering services under sections 3403 or 3405 must use qualification-based selection as prescribed by 40 U.S.C. chapter 11, and prohibits agencies from routinely requesting additional qualification information from contractors on multiple award contracts for such services."
+        },
+        {
+          "reference": "Section 3403 of title 10, United States Code",
+          "explanation": "Section 3403 provides general authority for agencies to enter into task or delivery order contracts for services or property. The NDAA section applies the new qualification-based selection requirement for A/E services to orders placed under the authority of this section."
+        },
+        {
+          "reference": "Section 3405 of title 10, United States Code",
+          "explanation": "Section 3405 governs task order contracts for advisory and assistance services, including the authority, competition, periods, and multiple awards. The NDAA section extends the qualification-based selection requirement for A/E services to orders placed under contracts entered into pursuant to this section."
+        },
+        {
+          "reference": "Chapter 11 of title 40, United States Code",
+          "explanation": "Chapter 11 establishes the federal qualification-based selection (QBS) process for architectural and engineering contracts, requiring selection on the basis of technical qualifications rather than price. The NDAA section mandates that this QBS process be used for A/E service orders issued under 10 U.S.C. 3403 or 3405 task or delivery order contracts."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_874",
+      "fiscal_year": 2022,
+      "section_number": "874",
+      "section_heading": "<<NOTE: 10 USC 3204 note.>> PILOT PROGRAM TO INCENTIVIZE CONTRACTING WITH EMPLOYEE- OWNED BUSINESSES.",
+      "dependencies": [
+        {
+          "reference": "section 1361(a)(1) of the Internal Revenue Code of 1986",
+          "explanation": "Defines 'S corporation' as a small business corporation with an effective S corporation election. This NDAA section requires that, to qualify for the pilot program, a business must be an S corporation as defined here and wholly owned via an employee stock ownership plan."
+        },
+        {
+          "reference": "section 4975(e)(7) of such Code",
+          "explanation": "Defines 'employee stock ownership plan' (ESOP) as a qualified stock bonus plan primarily investing in employer securities. The NDAA section uses this definition to restrict eligibility for the pilot to businesses wholly owned through an ESOP."
+        },
+        {
+          "reference": "section 2304 of title 10, United States Code",
+          "explanation": "Section 2304 was the primary statute requiring competitive procedures for DoD contracts (now replaced by 10 U.S.C. 3204). This NDAA section authorizes a pilot where certain noncompetitive (sole-source) follow-on contracts may be awarded to qualified ESOP-owned S corporations, overriding usual competition requirements."
+        },
+        {
+          "reference": "section 1737 of title 10, United States Code",
+          "explanation": "Provides the definition for 'senior contracting official' within the DoD. This NDAA section allows such an official to waive the limit on sole-source follow-on contract opportunities for qualifying ESOP-owned businesses."
+        },
+        {
+          "reference": "section 113(g) of title 10, United States Code",
+          "explanation": "Requires the Secretary of Defense to provide the 'national defense strategy' to Congress. The NDAA section requires the Comptroller General to assess whether the pilot program supports this strategy."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_843",
+      "fiscal_year": 2022,
+      "section_number": "843",
+      "section_heading": "<<NOTE: 10 USC 3344 note prec.>> ASSURING INTEGRITY OF OVERSEAS FUEL SUPPLIES.",
+      "dependencies": [
+        {
+          "reference": "15 U.S.C. 78dd-1 et seq. (Foreign Corrupt Practices Act)",
+          "explanation": "The Foreign Corrupt Practices Act prohibits U.S. persons and businesses from bribing foreign officials. This NDAA section requires offerors for overseas fuel contracts to provide records verifying compliance with FCPA, establishing this as a contract condition."
+        },
+        {
+          "reference": "22 CFR parts 120–130 (International Traffic in Arms Regulations, ITAR)",
+          "explanation": "These regulations control the export of U.S. defense-related articles and services. The NDAA section mandates offerors show compliance with ITAR by furnishing related records before being awarded overseas fuel contracts."
+        },
+        {
+          "reference": "15 CFR parts 730–774 (Export Administration Regulations, EAR)",
+          "explanation": "These regulations govern the export of dual-use and some military items. The section adds a requirement for offerors to prove compliance with EAR for eligibility to receive fuel contracts for overseas contingency operations."
+        },
+        {
+          "reference": "Regulations promulgated by the Office of Foreign Assets Control (OFAC), Department of the Treasury",
+          "explanation": "OFAC regulations manage U.S. economic sanctions and embargoes. This NDAA section requires offerors to present records showing compliance with OFAC regulations as a precondition for fuel supply contracts abroad."
+        },
+        {
+          "reference": "Subpart 15 of the Federal Acquisition Regulation (FAR)",
+          "explanation": "Subpart 15 covers source selection and negotiation for government contracts. The section directs contracting officers to consider these tradeoff processes (including evaluation factors such as past performance and compliance) when awarding overseas fuel supply contracts, and to provide written justification if such tradeoff processes are not used."
+        },
+        {
+          "reference": "Date of the enactment of this Act (NDAA FY22)",
+          "explanation": "The section specifies that its requirements—including compliance, certification, and contracting protocols—apply only to contracts entered into on or after the enactment date of the FY22 NDAA."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_822",
+      "fiscal_year": 2022,
+      "section_number": "822",
+      "section_heading": "MODIFICATION OF PRIZE AUTHORITY FOR ADVANCED TECHNOLOGY ACHIEVEMENTS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2374a",
+          "explanation": "10 U.S.C. 2374a is the authority allowing the Department of Defense to offer prizes for advanced technology achievements. This amendment (1) clarifies that procurement contracts and other agreements, not just cash prizes, can be awarded; (2) requires procedures for selecting recipients of such contracts or agreements; (3) allows these awards without the Under Secretary of Defense for Research and Engineering's approval; and (4) introduces a requirement for congressional notification when contracts or agreements exceeding $10 million are awarded. The section has been renumbered, but the NDAA's referenced content remains targeted by this amendment."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_817",
+      "fiscal_year": 2022,
+      "section_number": "817",
+      "section_heading": "REPEAL OF PREFERENCE FOR FIXED-PRICE CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "Section 829 of the National Defense Authorization Act for Fiscal Year 2017 (10 U.S.C. 2306 note)",
+          "explanation": "This section established both a regulatory preference for fixed-price contracts (including fixed-price incentive fee contracts) within the Department of Defense and a high-level approval requirement for large cost-type contracts. Section 817 of the FY22 NDAA repeals this section, thereby removing the requirement for a preference toward fixed-price contracts and the mandatory senior approval process for certain high-dollar cost-type contracts."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_803",
+      "fiscal_year": 2022,
+      "section_number": "803",
+      "section_heading": "AUTHORITY TO ACQUIRE INNOVATIVE COMMERCIAL PRODUCTS AND COMMERCIAL SERVICES USING GENERAL SOLICITATION COMPETITIVE PROCEDURES.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2376(1)",
+          "explanation": "This section previously defined 'commercial item' in defense procurement law, but was redesignated as 10 U.S.C. 3451(1). The NDAA updates an internal cross-reference for the new authority to align with the reorganized definition for 'commercial products' and 'commercial services.'"
+        },
+        {
+          "reference": "Section 879 of the National Defense Authorization Act for Fiscal Year 2017 (Public Law 114-328; 10 U.S.C. 2302 note)",
+          "explanation": "Section 879 established a temporary pilot program for DOD to buy innovative commercial products/services through general solicitation and peer review. The NDAA section repeals this temporary pilot authority and replaces it with a permanent statutory authority in title 10."
+        },
+        {
+          "reference": "10 U.S.C. 2380b",
+          "explanation": "This previously addressed acquisition of certain commercial products/services, but was transferred and redesignated during the 2021 reorganization of title 10. The NDAA amends the table of sections to insert the new authority (2380c) after 2380b."
+        },
+        {
+          "reference": "Chapter 137 of title 10, United States Code",
+          "explanation": "This chapter governed competitive procedures in procurement. The new authority is deemed a 'competitive procedure' for statutory purposes. The NDAA later updates this cross-reference to 'chapter 221' to reflect recodification."
+        },
+        {
+          "reference": "Section 1821(a) of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021 (Public Law 116-283)",
+          "explanation": "Section 1821(a) transferred and renumbered provisions for procurement of commercial products and services to chapter 247 (sections 3451 et seq.) in title 10. The NDAA moves the new acquisition authority to chapter 247 and renumbers it as section 3458, consistent with the reorganization."
+        },
+        {
+          "reference": "10 U.S.C. 3451(1)",
+          "explanation": "This is the current statutory definition for 'commercial products' and 'commercial services' in DOD procurement. The NDAA corrects a cross-reference in its newly created authority to reference this reorganized provision for legal precision."
+        },
+        {
+          "reference": "10 U.S.C. 3457",
+          "explanation": "This section concerns special treatment of certain products and services as commercial for procurement purposes. The NDAA places its new authority (section 3458) after section 3457 in the renumbered chapter."
+        },
+        {
+          "reference": "Sections 1883 through 1885 of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021 (Public Law 116-283)",
+          "explanation": "These sections provide transition, savings, and rule of construction provisions for the 2021 recodification of title 10. The NDAA ensures these provisions also apply to the transfer/renumbering of the new acquisition authority, preserving existing interpretations and actions."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2022_802",
+      "fiscal_year": 2022,
+      "section_number": "802",
+      "section_heading": "PROHIBITION ON ACQUISITION OF PERSONAL PROTECTIVE EQUIPMENT FROM NON-ALLIED FOREIGN NATIONS.",
+      "dependencies": [
+        {
+          "reference": "Chapter 148 of title 10, United States Code (inserting section 2533e)",
+          "explanation": "This chapter previously governed restrictions on DOD procurement from foreign sources, but has been repealed and subject to recodification. Section 802 initially amends this chapter by adding a new prohibition (section 2533e) on procuring personal protective equipment and related items from certain foreign nations (China, Russia, Iran, North Korea), subject to limited exceptions."
+        },
+        {
+          "reference": "Section 2533d of title 10, United States Code",
+          "explanation": "Section 2533d, now repealed, prohibited DOD from acquiring printed circuit boards from the same set of 'covered nations.' Section 802 inserts the new 2533e immediately after 2533d. The new restriction on PPE uses similar definitions and structure."
+        },
+        {
+          "reference": "Table of sections at the beginning of chapter 148 of title 10, United States Code",
+          "explanation": "Section 802 administratively updates the Table of Sections to reflect the addition of the new section 2533e."
+        },
+        {
+          "reference": "Section 2533e of title 10, United States Code (transfer and redesignation)",
+          "explanation": "Section 802 provides that, after initial insertion in chapter 148 as section 2533e, the provision shall be transferred to chapter 385, subchapter III and redesignated as section 4875, in accordance with the ongoing recodification of title 10."
+        },
+        {
+          "reference": "Subchapter III of chapter 385 of title 10, United States Code, as added by section 1870(d) of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021 (Public Law 116-283)",
+          "explanation": "Section 1870(d) of the FY21 NDAA established chapter 385, subchapter III, as the new location for limitations on procurement from certain foreign sources. Section 802 ultimately moves the prohibition on PPE from certain nations to this restructured section (as section 4875)."
+        },
+        {
+          "reference": "Table of sections for subchapter III of chapter 385 of title 10, United States Code, as added by section 1870(d) of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021",
+          "explanation": "Section 802 updates the corresponding table of sections to show the inclusion of section 4875 under the new structure."
+        },
+        {
+          "reference": "Title XVIII of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021",
+          "explanation": "Title XVIII of the FY21 NDAA reorganized and renumbered DOD procurement limitations throughout title 10. Section 802 coordinates the effective date of its own transfer/redesignation with the effective date of these broader title 10 amendments."
+        },
+        {
+          "reference": "Sections 1883 through 1885 of the William M. (Mac) Thornberry National Defense Authorization Act for Fiscal Year 2021 (Public Law 116-283)",
+          "explanation": "Sections 1883–1885 provide that legal references, administrative actions, and interpretations under old section numbers continue under the new structure and confirm that no substantive change in law results from this recodification. Section 802 incorporates these transition and construction provisions for its own redesignation."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_1801",
+      "fiscal_year": 2021,
+      "section_number": "1801",
+      "section_heading": "TRANSFER AND REORGANIZATION OF DEFENSE ACQUISITION STATUTES.",
+      "dependencies": [
+        {
+          "reference": "this title and the amendments made by this title (NDAA 2021, title XVIII)",
+          "explanation": "Title XVIII of the FY2021 NDAA (including amendments it makes to other statutes) is subject to a review and implementation process established in this section. The Secretary of Defense is directed to organize a comprehensive review, submit a report to Congress, and create an implementation plan for updating regulations and guidance. The amendments in this title do not take effect until January 1, 2022, and DFARS and other regulations must be updated by January 1, 2023. This effectively delays the legal force and implementation of the transferred and reorganized statutes to allow time for review and transition."
+        },
+        {
+          "reference": "10 USC 3001 note prec.",
+          "explanation": "This reference indicates that the instructions for delayed enactment and implementation should be placed as a note preceding 10 U.S.C. 3001. This means that the statutory changes and reorganization enacted in Title XVIII (including any recodification and amendment of defense acquisition statutes) are not effective until January 1, 2022, and must be fully implemented, including regulatory revisions, by January 1, 2023."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_1025",
+      "fiscal_year": 2021,
+      "section_number": "1025",
+      "section_heading": "RESTRICTIONS ON OVERHAUL, REPAIR, ETC. OF NAVAL VESSELS IN FOREIGN SHIPYARDS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 8680(a)",
+          "explanation": "10 U.S.C. 8680(a) restricts repair, overhaul, or maintenance of Navy vessels homeported in the U.S. or Guam from being performed in foreign shipyards, with limited exceptions. This amendment strikes the phrase 'other than in the case of voyage repairs' and inserts language that explicitly allows repairs in foreign shipyards if they are voyage repairs or necessary to correct damage from hostile actions or interventions, thereby expanding the exceptions."
+        },
+        {
+          "reference": "10 U.S.C. 8680(a)(2)(B)(i)",
+          "explanation": "10 U.S.C. 8680(a)(2)(B)(i) previously required that corrective and preventive maintenance on certain deployed vessels be performed by U.S. personnel. This amendment adds a process so that foreign workers may perform such maintenance if the Secretary of the Navy determines U.S. personnel cannot safely travel for health or safety reasons, and requires that Congress be notified within 30 days of such a determination, with specified details."
+        },
+        {
+          "reference": "10 U.S.C. 8680(a)(2)(C)(ii)",
+          "explanation": "10 U.S.C. 8680(a)(2)(C)(ii) defines 'facilities maintenance' for these purposes. This amendment makes a technical correction by eliminating a superfluous period after 'means--'."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_1024",
+      "fiscal_year": 2021,
+      "section_number": "1024",
+      "section_heading": "PREFERENCE FOR UNITED STATES VESSELS IN TRANSPORTING SUPPLIES BY SEA.",
+      "dependencies": [
+        {
+          "reference": "Section 2631 of title 10, United States Code",
+          "explanation": "This section specifies requirements for transporting Department of Defense supplies by sea using U.S. vessels. The NDAA section replaces the entire section with new language, expanding and clarifying requirements for vessel eligibility, waiver procedures, maintenance location mandates, contract compliance, and reporting to Congress. It constitutes a full rewrite, broadening and updating the prior law."
+        },
+        {
+          "reference": "Section 116 of title 46, United States Code",
+          "explanation": "Defines 'vessel of the United States' as a vessel documented or numbered under U.S. law or titled under state law. The amendment cross-references this definition in the new 10 U.S.C. 2631 to determine which commercial vessels may be used for DoD cargo transport."
+        },
+        {
+          "reference": "Section 55301 of title 46, United States Code",
+          "explanation": "Previously contained provisions for priority loading of coal. The NDAA redesignates this section as 55123, transfers it to follow section 55122, and changes formatting to match adjacent sections, without altering the substance of the coal priority-loading provision."
+        },
+        {
+          "reference": "Section 55122 of title 46, United States Code",
+          "explanation": "Contains provisions about movement of floating dry docks. The NDAA moves the priority loading for coal provision to immediately follow this section (now as 55123). The text of 55122 itself is unchanged."
+        },
+        {
+          "reference": "The table of sections at the beginning of chapter 157 of title 10, United States Code",
+          "explanation": "The NDAA updates this table of contents to reflect the new heading and scope of section 2631 after its rewrite, to maintain consistency with the revised statutory language."
+        },
+        {
+          "reference": "The analysis for subchapter I of chapter 553 of title 46, United States Code",
+          "explanation": "Removes the entry for section 55301 (now relocated). Also changes the subchapter heading to 'government impelled transportation' to better reflect its subject matter after the reorganization."
+        },
+        {
+          "reference": "The analysis for chapter 551 of title 46, United States Code",
+          "explanation": "The NDAA adds an entry for section 55123 (priority loading for coal) after 55122 in this chapter's section analysis, corresponding to the movement and renumbering of the coal loading provision."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_888",
+      "fiscal_year": 2021,
+      "section_number": "888",
+      "section_heading": "REVISION TO REQUIREMENT TO USE FIRM FIXED-PRICE CONTRACTS FOR FOREIGN MILITARY SALES.",
+      "dependencies": [
+        {
+          "reference": "Section 830 of the National Defense Authorization Act for Fiscal Year 2017 (22 U.S.C. 2762 note)",
+          "explanation": "Section 830 of the FY17 NDAA required the Department of Defense to use firm fixed-price contracts for foreign military sales, except where the foreign country requested or preferred another type, or the Secretary granted a waiver. It also directed DoD to run a pilot program to accelerate and reform contracting for foreign military sales of major weapon systems. Section 888 of the FY21 NDAA repeals this entire requirement, eliminating both the contract-type mandate and the pilot program."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_883",
+      "fiscal_year": 2021,
+      "section_number": "883",
+      "section_heading": "<<NOTE: 10 USC 4701 note.>> PROHIBITION ON AWARDING OF CONTRACTS TO CONTRACTORS THAT REQUIRE NONDISCLOSURE AGREEMENTS RELATING TO WASTE, FRAUD, OR ABUSE.",
+      "dependencies": [
+        {
+          "reference": "10 USC 4701 note",
+          "explanation": "This section creates a new, uncodified policy as a statutory note to 10 U.S.C. 4701, prohibiting the Department of Defense from awarding contracts to contractors that require employees to sign internal confidentiality agreements restricting lawful reports of waste, fraud, or abuse to DoD officials. The section does not amend 10 U.S.C. 4701 itself, but establishes this requirement as a related note."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_820",
+      "fiscal_year": 2021,
+      "section_number": "820",
+      "section_heading": "CONTRACT CLOSEOUT AUTHORITY FOR SERVICES CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "Section 836(b) of the National Defense Authorization Act for Fiscal Year 2017 (10 U.S.C. 2302 note)",
+          "explanation": "Section 836(b) established criteria for closeout authority for DoD contracts without a reconciliation audit for contracts entered prior to fiscal year 2000. The FY21 NDAA amends this to allow (1) contracts not related to military construction or shipbuilding to be eligible if they are at least 7 fiscal years old, and (2) contracts for military construction or shipbuilding to be eligible if they are at least 10 fiscal years old; also, all eligible contracts must have completed performance or delivery at least 4 years before the current fiscal year. This broadens and updates the eligibility for contract closeout authority."
+        },
+        {
+          "reference": "Section 2801 of title 10, United States Code",
+          "explanation": "Section 2801 defines 'military construction' for purposes of federal law, including construction, development, or extension at military installations. The FY21 NDAA references this definition to specify which contracts are subject to the 10-year qualification rule."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2021_817",
+      "fiscal_year": 2021,
+      "section_number": "817",
+      "section_heading": "MODIFICATION TO SMALL PURCHASE THRESHOLD EXCEPTION TO SOURCING REQUIREMENTS FOR CERTAIN ARTICLES.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2533a(h)",
+          "explanation": "10 U.S.C. 2533a(h) previously exempted purchases not greater than $150,000 from domestic sourcing requirements, prohibiting dividing larger procurements to evade the threshold. Section 817 of NDAA FY21 amends it by keeping the $150,000 limit and anti-splitting provision and authorizing the Secretary of Defense, every five years, to adjust the threshold based on changes in the Consumer Price Index, with any adjustment published in the Federal Register. This adds an explicit inflation adjustment mechanism to the exception."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_890",
+      "fiscal_year": 2020,
+      "section_number": "890",
+      "section_heading": "<<NOTE: Venezuela. 10 USC 2302 note.>> PROHIBITION ON CONTRACTING WITH PERSONS THAT HAVE BUSINESS OPERATIONS WITH THE MADURO REGIME.",
+      "dependencies": [
+        {
+          "reference": "section 1603(b) of title 28, United States Code",
+          "explanation": "28 U.S.C. § 1603(b) defines an 'agency or instrumentality of a foreign state' as a separate legal person (corporate or otherwise), that is an organ of a foreign state or political subdivision, or is majority-owned by such, and is neither a U.S. citizen nor created under the laws of a third country. This NDAA section applies the definition to 'the Government of Venezuela', substituting 'Venezuela' for 'a foreign state', to clarify which Venezuelan entities are captured by the contracting prohibition."
+        },
+        {
+          "reference": "section 1701(c)(3) of the International Financial Institutions Act (22 U.S.C. 262r(c)(3))",
+          "explanation": "22 U.S.C. § 262r(c)(3) defines 'multilateral development institutions' as international financial institutions other than the International Monetary Fund. This term is used in the NDAA section to clarify that 'person' includes multilateral development institutions for purposes of prohibiting contracting with entities having business operations with the Maduro regime."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_872",
+      "fiscal_year": 2020,
+      "section_number": "872",
+      "section_heading": "REAUTHORIZATION AND IMPROVEMENT OF DEPARTMENT OF DEFENSE MENTOR-PROTEGE PROGRAM.",
+      "dependencies": [
+        {
+          "reference": "section 831 of the National Defense Authorization Act for Fiscal Year 1991 (Public Law 101-510; 10 U.S.C. 2302 note)",
+          "explanation": "Section 831 originally established the DoD Mentor-Protege Program to aid small businesses, especially disadvantaged ones, by pairing them with mentor firms for development. This NDAA section amends subsection (j) to extend the program's authority (from 'September 30, 2018' to 'September 30, 2024') and the authority to enter into new agreements (from 'September 30, 2021' to 'September 30, 2026'). It also shortens the allowed duration of mentor-protege agreements in subsection (e)(2) from three years to two years. Furthermore, it tasks the Office of Small Business Programs to establish performance goals, conduct periodic reviews, and report on progress, and modifies the definition of 'disadvantaged small business concern' (subsection (o)) to allow larger firms (up to the full NAICS code size standard)."
+        },
+        {
+          "reference": "section 2283 of title 10, United States Code",
+          "explanation": "10 U.S.C. 2283 requires the Secretary of Defense to implement and submit a unified DoD small business strategy to Congress. This NDAA section specifies that its amendments will only take effect once the Secretary submits the required strategy under this statute and notifies the House Law Revision Counsel for execution of the changes."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_861",
+      "fiscal_year": 2020,
+      "section_number": "861",
+      "section_heading": "DEFENSE ACQUISITION WORKFORCE CERTIFICATION, EDUCATION, AND CAREER FIELDS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. §1701a",
+          "explanation": "NDAA 2020 sec. 861 amends §1701a to require professional certification for all acquisition workforce members—where possible, based on third-party accredited, national/international standards; adds/clarifies performance management provisions including consequences, authorizes participation in professional associations, and updates career path language."
+        },
+        {
+          "reference": "10 U.S.C. §1723",
+          "explanation": "Updates §1723 by removing the second sentence of §1723(a)(3) (related to renewal/certification) and changes language in §1723(b)(1) to require that workforce members must be directed (not just encouraged) to maintain current acquisition knowledge."
+        },
+        {
+          "reference": "10 U.S.C. §1724",
+          "explanation": "Removes the statutory requirement for completion of 24 semester credit hours in business-related fields from contracting officer qualification requirements. Conforming changes are made throughout the section to reference only the new requirements."
+        },
+        {
+          "reference": "10 U.S.C. §1732",
+          "explanation": "Section 1732, which provided criteria for Acquisition Corps membership, is repealed; the statutory basis for the Defense Acquisition Corps is eliminated."
+        },
+        {
+          "reference": "10 U.S.C. §1746",
+          "explanation": "Subsection (b) is expanded to require the inclusion of a specified number of visiting professors from civilian universities and commercial organizations, and strengthens collaboration with commercial training providers in curriculum development."
+        },
+        {
+          "reference": "10 U.S.C. §1721",
+          "explanation": "Amended to require the Secretary of Defense to explicitly designate acquisition workforce career fields (not just positions) via regulation, with corresponding title and table of section changes."
+        },
+        {
+          "reference": "10 U.S.C. §1722",
+          "explanation": "Amendments clarify that a specific career path must be identified and implemented for each acquisition workforce career field; existing references are updated for specificity."
+        },
+        {
+          "reference": "10 U.S.C. §1722b",
+          "explanation": "Adds a new requirement that key work experiences must be developed for each acquisition workforce career field as part of workforce development strategies for civilians."
+        },
+        {
+          "reference": "10 U.S.C. §1765",
+          "explanation": "NDAA 2020 adds new §1765, requiring defined proficiency standards and technical/nontechnical competencies for civilian personnel in each acquisition workforce career field, plus resource allocation for competency development."
+        },
+        {
+          "reference": "10 U.S.C. §§1731, 1733, and Acquisition Corps framework",
+          "explanation": "Repeals Acquisition Corps statutory framework by amending §1733 (renumbered as §1731), transferring and revising subsections, and making numerous conforming changes throughout Title 10 related to the transition from Acquisition Corps to critical acquisition positions/acquisition workforce language."
+        },
+        {
+          "reference": "10 U.S.C. §2228",
+          "explanation": "Amends §2228(a)(4) to replace reference to Acquisition Corps under §1733 with reference to critical acquisition positions under §1731, aligning with the new workforce structure."
+        },
+        {
+          "reference": "10 U.S.C. §7016",
+          "explanation": "Amends §7016(b)(5)(B) to update reference from §1733 to §1731 for designation of critical acquisition positions."
+        },
+        {
+          "reference": "10 U.S.C. §8016",
+          "explanation": "Amends §8016(b)(4)(B) to update reference from §1733 to §1731 for designation of critical acquisition positions."
+        },
+        {
+          "reference": "10 U.S.C. §9016",
+          "explanation": "Amends §9016(b)(4)(B) to update reference from §1733 to §1731 for designation of critical acquisition positions."
+        },
+        {
+          "reference": "37 U.S.C. §317",
+          "explanation": "Updates definition of covered officers for special acquisition position retention bonus to reference critical acquisition positions under 10 U.S.C. §1731, replacing previous Acquisition Corps language."
+        },
+        {
+          "reference": "10 U.S.C. §1725",
+          "explanation": "Amends references in §1725(a)(1) and (d)(2) from Defense Acquisition Corps to acquisition workforce or acquisition workforce serving in critical acquisition positions."
+        },
+        {
+          "reference": "10 U.S.C. §1734",
+          "explanation": "Updates references throughout §1734 from 'of the Acquisition Corps' to 'of the acquisition workforce,' and modifies related language for assignments and rotation in critical acquisition positions."
+        },
+        {
+          "reference": "10 U.S.C. §1737",
+          "explanation": "Changes references in §1737 from 'of the Acquisition Corps' to 'of the acquisition workforce' for definitions and general provisions."
+        },
+        {
+          "reference": "10 U.S.C. §1742",
+          "explanation": "Amends §1742(a)(1) to replace 'the Acquisition Corps' with 'acquisition positions in the Department of Defense' in relation to internship, cooperative education, and scholarship programs."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_853",
+      "fiscal_year": 2020,
+      "section_number": "853",
+      "section_heading": "REQUIREMENT THAT CERTAIN SHIP COMPONENTS BE MANUFACTURED IN THE NATIONAL TECHNOLOGY AND INDUSTRIAL BASE.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2534",
+          "explanation": "Amends 10 U.S.C. 2534 by adding a new procurement limitation for components for auxiliary ships—specifically large medium-speed diesel engines—requiring that they be manufactured in the national technology and industrial base (NTIB). This applies only to contracts for new construction of auxiliary ships awarded after the enactment of the FY2020 NDAA, using specific Navy funds, and excludes icebreakers and special mission ships from the definition of auxiliary ship."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_852",
+      "fiscal_year": 2020,
+      "section_number": "852",
+      "section_heading": "AUTHORIZED OFFICIAL TO CARRY OUT THE PROCUREMENT TECHNICAL ASSISTANCE COOPERATIVE AGREEMENT PROGRAM.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2411(3)",
+          "explanation": "Section 2411(3) defines 'Secretary' as the Secretary of Defense acting through the Director of the Defense Logistics Agency for purposes of Chapter 142 (procurement technical assistance cooperative agreement program). This NDAA section amends that definition so the Secretary now acts through the Under Secretary of Defense for Acquisition and Sustainment, rather than the Director of the Defense Logistics Agency, shifting oversight and management of the program."
+        },
+        {
+          "reference": "chapter 142 of title 10, United States Code",
+          "explanation": "Chapter 142 regulates the procurement technical assistance cooperative agreement program. This NDAA section mandates the transfer of responsibility for carrying out this program from the Director of the Defense Logistics Agency to the Under Secretary of Defense for Acquisition and Sustainment and requires a report to Congress about preparatory activities for this transition."
+        },
+        {
+          "reference": "section 234(d) of title 10, United States Code",
+          "explanation": "Section 234(d) defines 'defense budget materials' as the documents submitted by DoD to Congress in support of the annual defense budget. This NDAA section requires that, for fiscal year 2021 and onward, these materials include a budget justification display specifically for the procurement technical assistance cooperative agreement program as part of Operation and Maintenance, Defense-wide, for the Office of the Secretary of Defense."
+        },
+        {
+          "reference": "section 221 of title 10, United States Code",
+          "explanation": "Section 221 governs how the future-years defense program and related budget submissions are made to Congress. The NDAA section refers to the budget justification materials required by this process, directing that information about the procurement technical assistance program be included in the annual submissions, but does not directly amend section 221."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_849",
+      "fiscal_year": 2020,
+      "section_number": "849",
+      "section_heading": "MODIFICATION OF PROHIBITION ON ACQUISITION OF SENSITIVE MATERIALS FROM NON-ALLIED FOREIGN NATIONS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2533c(a)(2)",
+          "explanation": "Amends subsection (a)(2) by changing the prohibition on the sale from 'covered material' to 'material,' broadening the prohibition from only specifically listed materials to potentially any material when determining sales from the National Defense Stockpile."
+        },
+        {
+          "reference": "10 U.S.C. 2533c(d)(1)",
+          "explanation": "Expands the definition of 'covered material' to include 'tantalum metals and alloys,' subjecting tantalum to the same procurement and sale restrictions as the previously listed materials."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_823",
+      "fiscal_year": 2020,
+      "section_number": "823",
+      "section_heading": "<<NOTE: 10 USC 2304 note.>> MODIFICATION OF JUSTIFICATION AND APPROVAL REQUIREMENT FOR CERTAIN DEPARTMENT OF DEFENSE CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "section 811 of the National Defense Authorization Act for Fiscal Year 2010 (Public Law 111-84; 123 Stat. 2405)",
+          "explanation": "Section 811 of the FY2010 NDAA set requirements for written justification, higher-level approval, and public disclosure for sole-source contracts in covered procurements above $20 million. NDAA 2020 section 823 raises the threshold for DoD covered procurements, so no justification and approval is required for sole-source contracts at or below $100 million. The amendment also changes who must approve the justification for contracts over $100 million."
+        },
+        {
+          "reference": "section 2304(f)(1)(B)(ii) of title 10, United States Code",
+          "explanation": "10 U.S.C. 2304(f)(1)(B)(ii) establishes that for contracts over $10 million (but not exceeding $75 million), the head of the procuring activity or a designated delegate must approve the justification. NDAA 2020 section 823 uses this official as the approving authority for DoD sole-source contracts in covered procurements over $100 million, effectively assigning approval to a senior official consistent with this section."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_816",
+      "fiscal_year": 2020,
+      "section_number": "816",
+      "section_heading": "MODIFICATION OF WRITTEN APPROVAL REQUIREMENT FOR TASK AND DELIVERY ORDER SINGLE CONTRACT AWARDS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2304a(d)(3)",
+          "explanation": "Section 2304a(d)(3) establishes requirements for awarding a single-source task or delivery order contract over $100 million. This NDAA amendment restructures the provision (by redesignating subparagraphs and clauses) and introduces a new exception that allows such a contract if the head of the agency makes a written determination under section 2304(c) (for noncompetitive procedures). Previously, only a strict written determination meeting one of four reasons was allowed; now an award is also authorized if it meets the broader exceptions under section 2304(c)."
+        },
+        {
+          "reference": "10 U.S.C. 2304(c)",
+          "explanation": "Section 2304(c) lists statutory exceptions permitting use of noncompetitive procedures for federal contracting. The NDAA section cross-references this provision and enables the head of an agency to award a contract exceeding $100 million to a single source without the prior written determination under section 2304a(d)(3), if a determination is made under 2304(c) (i.e., if the contract meets a statutory exception to competition)."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_807",
+      "fiscal_year": 2020,
+      "section_number": "807",
+      "section_heading": "DEPARTMENT OF DEFENSE USE OF FIXED-PRICE CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "section 830(a) of the National Defense Authorization Act for Fiscal Year 2017 (Public Law 114-328; 22 U.S.C. 2762 note)",
+          "explanation": "Section 830(a) of the FY 2017 NDAA requires the Secretary of Defense to prescribe regulations mandating the use of firm fixed-price contracts for foreign military sales, with certain exceptions and waiver provisions. Section 807 of the FY 2020 NDAA delays the implementation of these regulations until December 31, 2020 and additionally requires that the findings of the Department of Defense review conducted under subsection (a)(1) regarding the use of fixed-price contracts be considered before the regulations take effect."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_803",
+      "fiscal_year": 2020,
+      "section_number": "803",
+      "section_heading": "FAILURE TO PROVIDE OTHER THAN CERTIFIED COST OR PRICING DATA UPON REQUEST.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 2306a(d)",
+          "explanation": "Amends the section governing the submission of other than certified cost or pricing data when certified data is not required. The NDAA 2020 adds: (1) Contracting officers are prohibited from deeming prices fair and reasonable based solely on historical government prices; (2) offerors who fail to make a good faith effort to provide requested data are ineligible for award unless the head of the contracting activity makes a special determination in the government's best interest; and (3) introduces new quarterly and annual reporting requirements regarding such determinations and repeated non-compliance, as well as requirements for should-cost analysis and strategies to incentivize competition for sole-source providers. These amendments strengthen price reasonableness determinations, add consequences for non-compliance, and introduce new reporting and oversight procedures."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_372",
+      "fiscal_year": 2020,
+      "section_number": "372",
+      "section_heading": "EXPANSION AND ENHANCEMENT OF AUTHORITIES ON TRANSFER AND ADOPTION OF MILITARY ANIMALS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 2583",
+          "explanation": "Expands the statute to apply to both 'transfer' and 'adoption' of military animals (rather than just adoption), updates procedures for determining suitability and priority for transfer/adoption (including organizations as recipients), adds requirements for veterinary screening and care for retiring military working dogs (especially at Lackland AFB), clarifies liability protections for transferred/adopted animals, and clarifies that equids (horse, mule, donkey) owned by DoD are included. Also, affirms policies on transfer to law enforcement agencies and enhances preferences for former handlers."
+        },
+        {
+          "reference": "10 U.S.C. § 2410r",
+          "explanation": "Clarifies and expands requirements for contract working dogs by requiring contracts to mandate not only transfer to the 341st Training Squadron but also assignment for veterinary screening and care under 10 U.S.C. § 2583 after the service life ends. Updates internal references and contract terms to specify this process."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2020_322",
+      "fiscal_year": 2020,
+      "section_number": "322",
+      "section_heading": "<<NOTE: 10 USC 2661 note prec.>> REPLACEMENT OF FLUORINATED AQUEOUS FILM-FORMING FOAM WITH FLUORINE-FREE FIRE-FIGHTING AGENT.",
+      "dependencies": [
+        {
+          "reference": "10 USC 2661 note prec.",
+          "explanation": "This citation establishes a statutory note preceding 10 U.S.C. 2661, which deals with real property acquisition for military installations. Section 322 of the NDAA FY2020 does not amend the text of 10 U.S.C. 2661 itself, but creates a new legal requirement for the Department of Defense to transition to fluorine-free fire-fighting agents at military installations, including deadlines, reporting, and prohibitions related to the use and procurement of foams containing perfluoroalkyl and polyfluoroalkyl substances."
+        },
+        {
+          "reference": "congressional defense committees",
+          "explanation": "This reference mandates various reports, certifications, briefings, and notices to be submitted to the 'congressional defense committees,' typically defined in NDAAs as the Armed Services and Appropriations Committees of both the House and Senate. Section 322 imposes new reporting requirements but does not amend any prior law regarding committee jurisdiction."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_2804",
+      "fiscal_year": 2019,
+      "section_number": "2804",
+      "section_heading": "SMALL BUSINESS SET-ASIDE FOR CONTRACTS FOR ARCHITECTURAL AND ENGINEERING SERVICES AND CONSTRUCTION DESIGN.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2855(b)(1)",
+          "explanation": "This subsection required certain contracts (below a threshold amount) for architectural and engineering services to be awarded in accordance with Small Business Act set-aside provisions. The NDAA section amends it by removing prior wording ('subsection (a)--' and what followed), clarifying that contracts estimated below the threshold must follow Small Business Act set-aside procedures, and restating requirements in updated language."
+        },
+        {
+          "reference": "10 U.S.C. 2855(b)(2)",
+          "explanation": "This subsection defined the threshold amount for applying small business set-asides. Previously, it was $300,000. The NDAA section increases this threshold to $1,000,000, removes the word 'initial' regarding contract award, and strikes out the second sentence, broadening the applicability and simplifying the rules."
+        },
+        {
+          "reference": "Small Business Act (15 U.S.C. 631 et seq.)",
+          "explanation": "The Small Business Act governs federal contracting policy for small businesses, including set-aside provisions. This NDAA section mandates the continued use of Small Business Act set-aside procedures for relevant contracts estimated below the new threshold."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_1006",
+      "fiscal_year": 2019,
+      "section_number": "1006",
+      "section_heading": "<<NOTE: 10 USC 240d note.>> TRANSPARENCY OF ACCOUNTING FIRMS USED TO SUPPORT DEPARTMENT OF DEFENSE AUDIT.",
+      "dependencies": [
+        {
+          "reference": "section 3521 of title 31, United States Code",
+          "explanation": "31 U.S.C. 3521 requires agencies to have their financial statements audited according to generally accepted government auditing standards. This NDAA section imposes a new requirement on accounting firms providing audit or remediation services to the Department of Defense in support of these audits: they must disclose to the DoD details of any disciplinary proceedings against themselves or their associated persons before any relevant regulatory authority."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_881",
+      "fiscal_year": 2019,
+      "section_number": "881",
+      "section_heading": "PERMANENT SUPPLY CHAIN RISK MANAGEMENT AUTHORITY.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2319",
+          "explanation": "This section sets requirements for qualification standards for prospective suppliers. The NDAA section establishes that exclusion of sources based on supply chain risk is permitted where those sources fail to meet qualification standards under this section, specifically protecting national security systems."
+        },
+        {
+          "reference": "10 U.S.C. 2304(f)(3)",
+          "explanation": "This portion requires agencies to justify in writing when using non-competitive procurement procedures, detailing needs and exceptions. The NDAA adds a requirement that congressional notifications regarding supply chain risk actions must include the information required by 2304(f)(3)."
+        },
+        {
+          "reference": "10 U.S.C. 2305(a)(1)(C)(ii) and 10 U.S.C. 2305(a)(2)(A)",
+          "explanation": "These provisions relate to specifying performance specifications and evaluation factors in solicitations for competitive proposals. The NDAA section ties the covered procurements for supply chain risk authority to procurements where these specifications/factors relate to supply chain risk."
+        },
+        {
+          "reference": "10 U.S.C. 2304c(d)(3)",
+          "explanation": "This provision requires, for task or delivery orders above $5 million, disclosure to all task/delivery order contract holders of evaluation factors and their importance. The NDAA section includes these task/delivery orders in the scope of its supply chain risk authority if the contract includes supply chain risk requirements."
+        },
+        {
+          "reference": "44 U.S.C. 3542(b)",
+          "explanation": "This section defines 'national security system' as systems used for intelligence, military, or national security functions. The NDAA section uses this term to limit its supply chain risk authority to covered systems as defined here."
+        },
+        {
+          "reference": "40 U.S.C. 11101",
+          "explanation": "This section defines 'information technology,' including hardware and software acquired or used by federal agencies. The NDAA section uses this definition for 'covered item of supply,' which are subject to supply chain risk procurement actions."
+        },
+        {
+          "reference": "Section 806(g) of the NDAA for FY2011 (Public Law 111-383; 10 U.S.C. 2304 note)",
+          "explanation": "Section 806(g) previously provided a sunset for DoD's supply chain risk management authority. The amendment in FY19 NDAA repeals this sunset provision, making the supply chain risk authority permanent and codifying it as 10 U.S.C. 2339a."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_875",
+      "fiscal_year": 2019,
+      "section_number": "875",
+      "section_heading": "PROMOTION OF THE USE OF GOVERNMENT-WIDE AND OTHER INTERAGENCY CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "Section 865(b)(1) of the Duncan Hunter National Defense Authorization Act for Fiscal Year 2009 (Public Law 110-417; 31 U.S.C. 1535 note)",
+          "explanation": "Section 865(b)(1) of the FY2009 NDAA required revisions to the Federal Acquisition Regulation ensuring all interagency acquisitions include a written agreement assigning management, a determination that such acquisition is the best procurement alternative, and sufficient documentation for audit. The FY2019 NDAA section 875 amends this language: it clarifies that the requirements apply specifically to 'all interagency assisted acquisitions,' removes the requirement for a determination that an interagency acquisition is the best alternative, and ensures remaining requirements reference 'all interagency assisted acquisitions.' This narrows, clarifies, and partially repeals prior rules for interagency contracting."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_871",
+      "fiscal_year": 2019,
+      "section_number": "871",
+      "section_heading": "PROHIBITION ON ACQUISITION OF SENSITIVE MATERIALS FROM NON-ALLIED FOREIGN NATIONS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2533b",
+          "explanation": "Section 2533b restricts DoD procurement of certain specialty metals from non-domestic sources, with exceptions. This amendment adds a new Section 2533c immediately after 2533b, creating new prohibitions specifically on DoD acquisition and sale of certain sensitive materials (e.g., samarium-cobalt magnets, neodymium-iron-boron magnets, and tungsten products) sourced from specified non-allied nations."
+        },
+        {
+          "reference": "41 U.S.C. 104",
+          "explanation": "Section 104 defines 'commercially available off-the-shelf (COTS) item' for federal procurement. The new Section 2533c uses this definition to carve out exceptions, allowing most COTS items to be exempt from the prohibition, except specific tungsten-heavy products and unfinished mill products."
+        },
+        {
+          "reference": "10 U.S.C. 187",
+          "explanation": "Section 187 established the Strategic Materials Protection Board, which advises DoD on strategic material availability. The new Section 2533c uses input from this Board to allow an exception for electronic devices unless the Board recommends, and the Secretary determines, domestic availability of a particular device is critical to national security."
+        },
+        {
+          "reference": "10 U.S.C. 2533b(m)",
+          "explanation": "Section 2533b(m) defines 'end item' for material sourcing restrictions. Section 2533c uses this definition for clarity in its prohibitions and exceptions related to covered materials from non-allied nations."
+        },
+        {
+          "reference": "10 U.S.C. 2531 prec.",
+          "explanation": "This is the table of contents for subchapter V, chapter 148 of Title 10. The amendment instructs adding the new Section 2533c to this table for accuracy; this is a clerical update, not a substantive change."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_865",
+      "fiscal_year": 2019,
+      "section_number": "865",
+      "section_heading": "VALIDATION OF PROPRIETARY AND TECHNICAL DATA.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2321(f)",
+          "explanation": "10 U.S.C. 2321(f) previously set a presumption—when the contractor or subcontractor asserted that technical data for commercial items was developed exclusively at private expense, the government had to presume this was justified unless it could prove otherwise. However, there were exceptions in paragraph (2). This NDAA section amends 10 U.S.C. 2321(f) by removing those exceptions (striking paragraph (2)) and modifying the introductory language, so the presumption now applies to all commercial item technical data with no exceptions. This change strengthens contractors' ability to restrict government use or release of such data."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_852",
+      "fiscal_year": 2019,
+      "section_number": "852",
+      "section_heading": "PROMPT PAYMENTS OF SMALL BUSINESS CONTRACTORS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2307(a)",
+          "explanation": "10 U.S.C. 2307(a) initially authorized agencies to make advance, partial, progress, or other payments on contracts, and allowed provisions favoring small business concerns for advance/progress payments. The NDAA section 852 restructures this subsection and adds a requirement that the Secretary of Defense establish, whenever possible, an accelerated payment date (target: 15 days after invoice receipt) for small business prime contractors and for primes that subcontract to small businesses, when no specific contract payment date exists and certain conditions are met."
+        },
+        {
+          "reference": "41 U.S.C. 8701",
+          "explanation": "41 U.S.C. 8701 defines 'prime contractor' and related terms for federal contract law. The NDAA section relies on these definitions to determine which prime contractors are eligible for the newly mandated accelerated payment terms, but does not amend or change these definitions."
+        },
+        {
+          "reference": "15 U.S.C. 632",
+          "explanation": "15 U.S.C. 632 provides the definition of 'small business concern' and governs the SBA's authority to set size standards. The NDAA section invokes this definition to specify which businesses qualify for the new accelerated payment policy, but does not modify this statutory definition."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_824",
+      "fiscal_year": 2019,
+      "section_number": "824",
+      "section_heading": "SUBCONTRACTING PRICE AND APPROVED PURCHASING SYSTEMS.",
+      "dependencies": [
+        {
+          "reference": "Section 893 of the Ike Skelton National Defense Authorization Act for Fiscal Year 2011 (Public Law 111-383; 10 U.S.C. 2302 note)",
+          "explanation": "Section 893 originally established requirements for the management, approval, and disapproval of contractor business systems for Department of Defense contracts. The FY2019 NDAA §824 amends section 893 by (1) adding a formal definition for 'approved purchasing system,' and (2) adding a new rule that prohibits contracting officers from withholding consent to subcontract (where consent is required) if the contractor has an approved purchasing system, except with written program manager approval. These changes clarify what constitutes an approved purchasing system and restrict certain contracting officer actions."
+        },
+        {
+          "reference": "section 44.101 of the Federal Acquisition Regulation",
+          "explanation": "FAR 44.101 provides the definition for 'approved purchasing system.' The NDAA amendment incorporates this definition into section 893, ensuring that DoD policy aligns with the government-wide standard for what constitutes an approved purchasing system."
+        },
+        {
+          "reference": "10 U.S.C. 2302 note",
+          "explanation": "This citation is where section 893 is codified in federal law. The FY2019 NDAA §824 directs amendments to this note, namely adding a definition for 'approved purchasing system' and new procedures for subcontract consent, as detailed above."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_821",
+      "fiscal_year": 2019,
+      "section_number": "821",
+      "section_heading": "INCREASE IN MICRO-PURCHASE THRESHOLD APPLICABLE TO DEPARTMENT OF DEFENSE.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 2338",
+          "explanation": "Amends §2338 to raise the Department of Defense micro-purchase threshold from $5,000 to $10,000, and eliminates the language referencing 'notwithstanding subsection (a) of section 1902 of title 41,' making the threshold explicit."
+        },
+        {
+          "reference": "41 U.S.C. § 1902(a)(1)",
+          "explanation": "Removes references to 10 U.S.C. §§ 2338 and 2339 from §1902(a)(1), making federal micro-purchase threshold language more consistent and removing Defense-specific exceptions."
+        },
+        {
+          "reference": "10 U.S.C. § 2339",
+          "explanation": "Repeals §2339, which previously set a special micro-purchase threshold for basic research programs and activities at DoD science and technology reinvention labs. Now, these labs follow the general $10,000 threshold."
+        },
+        {
+          "reference": "Table of sections at the beginning of chapter 137 of title 10, United States Code ('10 USC 2301 prec.')",
+          "explanation": "Removes the entry for §2339 from the chapter's table of sections to reflect its repeal, ensuring the table remains accurate and up-to-date."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_816",
+      "fiscal_year": 2019,
+      "section_number": "816",
+      "section_heading": "MODIFICATION OF LIMITATIONS ON SINGLE SOURCE TASK OR DELIVERY ORDER CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. § 2304a(d)(3)(A)",
+          "explanation": "Section 2304a(d)(3)(A) previously required a written determination that a single source can 'reasonably perform the work' for task or delivery order contracts over $100 million. This NDAA section revises that language to require that only a single source can 'efficiently perform the work,' thus increasing the standard for awarding single-source contracts over $100 million."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2019_812",
+      "fiscal_year": 2019,
+      "section_number": "812",
+      "section_heading": "REPEAL OF CERTAIN DEFENSE ACQUISITION LAWS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 167a",
+          "explanation": "Repeals section 167a, which granted limited acquisition authority to combatant commanders for joint warfighting experimentation."
+        },
+        {
+          "reference": "10 U.S.C. 2323",
+          "explanation": "Repeals section 2323, removing Department of Defense contract goals and special rules for small disadvantaged businesses and certain institutions."
+        },
+        {
+          "reference": "10 U.S.C. 2332",
+          "explanation": "Repeals section 2332, eliminating the authority for share-in-savings contracts for information technology."
+        },
+        {
+          "reference": "10 U.S.C. 2304",
+          "explanation": "Amends section 2304(b)(2) by striking references to section 2323, removing obsolete language about small disadvantaged business exclusions in competitive procedures."
+        },
+        {
+          "reference": "10 U.S.C. 2304e",
+          "explanation": "Amends section 2304e(b) to update set-aside and competition language, removing references to section 2323 and adjusting text on small businesses in defense procurements."
+        },
+        {
+          "reference": "10 U.S.C. 2323a",
+          "explanation": "Amends section 2323a(a) to strike references to section 2323, updating rules on credit for Indian contracting in subcontracting goals."
+        },
+        {
+          "reference": "41 U.S.C. 1902",
+          "explanation": "Amends section 1902(b)(1) to strike reference to section 2323, removing a cross-reference now obsolete due to the repeal."
+        },
+        {
+          "reference": "15 U.S.C. 644",
+          "explanation": "Amends section 644(j)(3), (k)(10), and (m) to remove all references to section 2323, streamlining small business procurement rules and changing procurement center representative duties."
+        },
+        {
+          "reference": "Section 905(a)(1), John Warner NDAA for FY2007 (Public Law 109-364; 10 U.S.C. 133a note)",
+          "explanation": "Amends by striking reference to '167a', conforming to the repeal of section 167a for oversight of acquisition authorities."
+        },
+        {
+          "reference": "Section 853(c), NDAA for FY2004 (Public Law 108-136; 10 U.S.C. 2302 note)",
+          "explanation": "Strikes reference to section 2323 in definition of eligible Defense demonstration contractors."
+        },
+        {
+          "reference": "Section 831(n), NDAA for FY1991 (Public Law 101-510; 10 U.S.C. 2302 note)",
+          "explanation": "Amends by clarifying legacy application ('as in effect on March 1, 2018') and removing references to section 2323 in preference-related paragraphs."
+        },
+        {
+          "reference": "Section 8304(1), Federal Acquisition Streamlining Act of 1994 (10 U.S.C. 2375 note)",
+          "explanation": "Strikes reference to section 2323, removing obsolete cross-reference about contract restrictions."
+        },
+        {
+          "reference": "Section 10004(a)(1), Federal Acquisition Streamlining Act of 1994 (41 U.S.C. 1122 note)",
+          "explanation": "Strikes reference to section 2323, removing obsolete language in acquisition system requirements."
+        },
+        {
+          "reference": "Table of sections preceding 10 U.S.C. 161",
+          "explanation": "Amends the table of sections at the beginning of chapter 6 by striking the item for section 167a, to reflect its repeal."
+        },
+        {
+          "reference": "Table of sections preceding 10 U.S.C. 2301",
+          "explanation": "Amends the table of sections at the beginning of chapter 137 by striking the items for sections 2323 and 2332, reflecting their repeal."
+        },
+        {
+          "reference": "The provisions listed in subsection (b) of this NDAA section",
+          "explanation": "Repeals a large number of legacy, pilot, or note-based defense acquisition statutes and reports (NDAA sections, appropriations act sections, etc.). The effect is to strike each provision in full as listed: the content varies (e.g., contract rules, pilot programs, specialty metals sourcing, reporting, or acquisition processes) but the change is wholesale repeal of these special statutory requirements."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_1656",
+      "fiscal_year": 2018,
+      "section_number": "1656",
+      "section_heading": "<<NOTE: 10 USC 491 note.>> SECURITY OF NUCLEAR COMMAND, CONTROL, AND COMMUNICATIONS SYSTEM FROM COMMERCIAL DEPENDENCIES.",
+      "dependencies": [
+        {
+          "reference": "section 101(a)(16) of title 10, United States Code",
+          "explanation": "This section defines 'congressional defense committees' as the Armed Services and Appropriations Committees of both the Senate and the House of Representatives. The NDAA section uses this definition for specifying which committees the Secretary of Defense must report or certify to, but it does not amend or change the definition itself."
+        },
+        {
+          "reference": "section 171a of title 10, United States Code",
+          "explanation": "This section establishes the Council on Oversight of the National Leadership Command, Control, and Communications System and defines its membership and co-chair structure. The NDAA section relies on this by requiring that waiver authority for the procurement prohibition can be delegated only to the Deputy Secretary of Defense or the Council's co-chairs, but it does not make any change to section 171a itself."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_1051",
+      "fiscal_year": 2018,
+      "section_number": "1051",
+      "section_heading": "ELIMINATION OF REPORTING REQUIREMENTS TERMINATED AFTER NOVEMBER 25, 2017, PURSUANT TO SECTION 1080 OF THE NATIONAL DEFENSE AUTHORIZATION ACT FOR FISCAL YEAR 2016.",
+      "dependencies": [
+        {
+          "reference": "Section 1080 of the National Defense Authorization Act for Fiscal Year 2016",
+          "explanation": "Section 1080 terminated DOD reporting requirements established by NDAAs and still required as of April 1, 2015, effective November 25, 2017. This section (FY18 NDAA 1051) formalizes the elimination of the statutory basis for each report terminated by Section 1080 by repealing or amending the relevant legal provisions."
+        },
+        {
+          "reference": "Section 1061 of the National Defense Authorization Act for Fiscal Year 2017",
+          "explanation": "Section 1061 preserved certain DOD reports from termination under Section 1080. FY18 Section 1051 (subsections u, v, w) amends Section 1061 to add specific reports to the preserved list, ensuring their requirements continue despite automatic termination provisions."
+        },
+        {
+          "reference": "10 U.S.C. and all other public laws and NDAA sections amended or repealed in Section 1051 (e.g., 10 U.S.C. 113(c), Public Law 98-525, etc.)",
+          "explanation": "Each cited section corresponds to a legal requirement for a DOD report that is now being repealed, struck, or technically amended to eliminate the reporting requirement as a result of Section 1080's termination. The amendments remove obsolete reporting language, renumber subsections, and make conforming changes."
+        },
+        {
+          "reference": "10 USC 111 note (as referenced in subsections u, v, w of Section 1051 amending NDAA FY17 Section 1061)",
+          "explanation": "Subsections u, v, and w specify additional DOD reports that must be preserved as continuing requirements, adding them to the statutory list of reports not terminated by Section 1080. They update the note at 10 USC 111 with these exceptions."
+        },
+        {
+          "reference": "Numerous report provisions in NDAAs and other laws cited in subsections (b)-(t) (e.g., Public Law 98-525, 22 U.S.C. 1928 note, etc.)",
+          "explanation": "Each referenced law previously required a DOD report. FY18 Section 1051 amends, strikes, or repeals these provisions to formally eliminate the reporting requirement, in line with Section 1080's intent. Where sections are repealed, the report is no longer required; where subsections are struck or technical corrections made, reporting obligations are removed or clarified."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_871",
+      "fiscal_year": 2018,
+      "section_number": "871",
+      "section_heading": "NONCOMMERCIAL COMPUTER SOFTWARE ACQUISITION CONSIDERATIONS.",
+      "dependencies": [
+        {
+          "reference": "chapter 137 of title 10, United States Code",
+          "explanation": "Chapter 137 of Title 10 contains general procurement provisions for the Department of Defense. This section directs the insertion of a new section (2322a) after section 2322, providing additional requirements for negotiating the acquisition of noncommercial computer software."
+        },
+        {
+          "reference": "section 802 of the NDAA for FY2018",
+          "explanation": "Section 802 of FY2018 NDAA previously amended Chapter 137. Section 871 builds on this by further amending the chapter to add section 2322a after the section 802 amendments."
+        },
+        {
+          "reference": "10 USC 2322",
+          "explanation": "Section 2322 addressed DoD requirements for life cycle management and sustainment of software. Section 871 adds section 2322a to expand acquisition negotiations to ensure delivery of source code, build tools, testing materials, and software documentation for noncommercial computer software."
+        },
+        {
+          "reference": "Table of sections at the beginning of chapter 137 (10 USC 2301 prec.)",
+          "explanation": "Section 871 requires updating the table of sections for chapter 137 to add section 2322a, so it appears in the chapter’s contents list."
+        },
+        {
+          "reference": "10 USC 2322a note",
+          "explanation": "Section 871 creates a new requirement for the Secretary of Defense to issue guidance within 180 days to implement section 2322a, a newly created section."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_848",
+      "fiscal_year": 2018,
+      "section_number": "848",
+      "section_heading": "COMMERCIAL ITEM DETERMINATIONS.",
+      "dependencies": [
+        {
+          "reference": "Section 2380 of title 10, United States Code",
+          "explanation": "This section originally established DoD policies for commercial item determinations and supporting market research. The FY2018 NDAA amends it by redesignating the existing text as subsection (a) and adding a new subsection (b) that presumes prior acquisitions under FAR Part 12 (commercial item procedures) establish commercial item status for future procurements unless a senior procurement executive determines otherwise. It also adds a funding prohibition for acquiring such items under non-commercial procedures (FAR Part 15) unless specified written determinations are made."
+        },
+        {
+          "reference": "Section 2306a(b)(4)(B) of title 10, United States Code",
+          "explanation": "This provision governs review of commercial item determinations for cost or pricing data exceptions. The new NDAA section references this clause as a basis for an exception—if the head of contracting activity determines in writing that prior commercial item designation was improper, the funding prohibition on using FAR Part 15 does not apply, allowing reversal of commercial item status."
+        },
+        {
+          "reference": "Section 1702(c) of title 41, United States Code",
+          "explanation": "This section defines and assigns responsibility to the 'senior procurement executive' for federal agencies. The amendment relies on this definition to clarify authority: only the senior procurement executive (as designated here) may issue written determinations that override presumptions of commercial item status under the new rules."
+        },
+        {
+          "reference": "Part 12 and Part 15 of the Federal Acquisition Regulation (FAR)",
+          "explanation": "The text relies on FAR Part 12 (commercial item acquisition procedures) and FAR Part 15 (contracting by negotiation) to distinguish commercial versus non-commercial procurement processes. The amendment mandates that items previously acquired under FAR Part 12 must generally continue to be acquired as commercial items (using Part 12), and prohibits the use of Part 15 unless certain written determinations are made."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_837",
+      "fiscal_year": 2018,
+      "section_number": "837",
+      "section_heading": "<<NOTE: 10 USC 2337a note.>> SHOULD-COST MANAGEMENT.",
+      "dependencies": [
+        {
+          "reference": "Defense Supplement to the Federal Acquisition Regulation (DFARS)",
+          "explanation": "Requires the Secretary of Defense to amend the DFARS to establish detailed procedures for should-cost reviews of major weapon systems. The amendment adds requirements for transparency, objectivity, collaboration with contractors, quantifiable savings based on accurate information, personnel qualifications, and minimizing schedule impacts. This is a new regulatory instruction rather than an amendment to existing law."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_834",
+      "fiscal_year": 2018,
+      "section_number": "834",
+      "section_heading": "REQUIREMENT TO EMPHASIZE RELIABILITY AND MAINTAINABILITY IN WEAPON SYSTEM DESIGN.",
+      "dependencies": [
+        {
+          "reference": "Chapter 144 of title 10, United States Code, as amended by section 832",
+          "explanation": "Adds a new section (2443) to Chapter 144 of title 10, requiring greater emphasis on sustainment factors—especially reliability and maintainability—in the design, acquisition, and contracting process for weapon systems. Establishes contracting requirements, incentives/penalties, and defines applicable covered contracts."
+        },
+        {
+          "reference": "section 832 of the NDAA for FY2018",
+          "explanation": "Refers to prior amendments made by section 832 to Chapter 144 of title 10; section 834 instructs these changes are cumulative, so the addition of section 2443 should be integrated alongside section 832’s amendments."
+        },
+        {
+          "reference": "Table of sections at the beginning of subchapter I of Chapter 144, as amended by section 832",
+          "explanation": "Requires an update to the chapter’s table of sections to include the new section 2443 ('Sustainment factors in weapon system design'), ensuring it is listed among other sections as amended by section 832."
+        },
+        {
+          "reference": "10 USC 2443 note",
+          "explanation": "Applies uncodified notes to section 2443: (1) Subsections (c) and (d) (covering solicitation, award, and contract performance requirements) are only effective for covered contracts whose solicitations are issued one year after enactment or later; (2) authorizes funding for engineering changes to improve reliability or maintainability during weapon system development or production, contingent on appropriations."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_823",
+      "fiscal_year": 2018,
+      "section_number": "823",
+      "section_heading": "EXEMPTION FROM DESIGN-BUILD SELECTION PROCEDURES.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2305a(d)",
+          "explanation": "10 U.S.C. 2305a(d) previously set the limit that for design-build contracts over $4 million, the maximum number of firms invited to submit competitive proposals could not exceed 5, unless the solicitation involved an IDIQ contract for design-build construction or an exception was approved. The NDAA section amends this by clarifying the exceptions: (1) if the solicitation is for an IDIQ contract, or (2) if the head of contracting activity (delegable no lower than senior contracting official) approves the contracting officer's justification for exceeding 5, and written documentation is provided showing how exceeding 5 aligns with the two-phase process goals. This change tightens and specifies the approval process for exceeding the default maximum, requiring more detailed justification and limiting delegation of approval authority."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_821",
+      "fiscal_year": 2018,
+      "section_number": "821",
+      "section_heading": "AMENDMENT RELATING TO APPLICABILITY OF INFLATION ADJUSTMENTS.",
+      "dependencies": [
+        {
+          "reference": "Section 1908(d) of title 41, United States Code",
+          "explanation": "This section previously required the publication of inflation-adjusted acquisition-related dollar thresholds for federal procurement, which became effective upon publication in the Federal Register. Section 821 of the 2018 NDAA amends it to explicitly state that these adjusted thresholds apply to all contracts and subcontracts in effect on the publication date, regardless of their award date, thereby broadening their retroactive applicability."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_818",
+      "fiscal_year": 2018,
+      "section_number": "818",
+      "section_heading": "<<NOTE: 10 USC 2305 note.>> ENHANCED POST-AWARD DEBRIEFING RIGHTS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2305(b)(5)(D) and related subparagraphs",
+          "explanation": "10 U.S.C. 2305(b)(5) outlines post-award debriefing requirements for unsuccessful offerors in DoD procurements. Subparagraph (D) protects confidential and proprietary information of other offerors. The NDAA section directs revision of DFARS to strengthen these protections, mandates disclosure of agency source selection award determination (redacted) for high-value contracts, and requires written or oral debriefings for contracts over $10 million, ensuring both winning and losing offerors receive relevant information."
+        },
+        {
+          "reference": "Amendments to 10 U.S.C. 2305(b)(5)",
+          "explanation": "The NDAA section amends 10 U.S.C. 2305(b)(5) to allow disappointed offerors to submit follow-up questions within two business days after a post-award debriefing, requires agencies to respond in writing within five business days, and provides that the debriefing is not considered concluded until these responses are delivered. This expands the debriefing process and offers greater transparency and engagement for unsuccessful offerors."
+        },
+        {
+          "reference": "31 U.S.C. 3553(d)(4)",
+          "explanation": "31 U.S.C. 3553(d)(4) establishes timeframes for when contract performance can begin after a protest period. The NDAA amends this for DoD contracts, specifying that the 5-day post-debriefing protest period does not start until the government delivers written responses to follow-up questions submitted by disappointed offerors under the new 10 U.S.C. 2305(b)(5)(B)(vii) provision. This change links the protest timing to the expanded debriefing process."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_815",
+      "fiscal_year": 2018,
+      "section_number": "815",
+      "section_heading": "LIMITATION ON UNILATERAL DEFINITIZATION.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2326",
+          "explanation": "10 U.S.C. 2326 establishes restrictions and requirements for undefinitized contractual actions (UCAs) in defense contracting, including deadlines for reaching agreement, limits on fund obligations, and oversight. Section 815 amends 2326 by: (1) adding a new subsection (c) that prohibits contracting officers from unilaterally finalizing contract terms, specifications, or price for UCAs over $50 million without written approval from the service acquisition executive or the Under Secretary of Defense for Acquisition and Sustainment, notification to the contractor, and a 30-day waiting period; (2) redesignating existing subsections (c) through (i) as (d) through (j); and (3) updating subsection (b)(3) to reference 'subsection (h)' instead of 'subsection (g)' due to the new subsection."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_813",
+      "fiscal_year": 2018,
+      "section_number": "813",
+      "section_heading": "SUNSET OF CERTAIN PROVISIONS RELATING TO THE PROCUREMENT OF GOODS OTHER THAN UNITED STATES GOODS.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2534(c)",
+          "explanation": "10 U.S.C. 2534(c) sets limitations and sunset dates for procurement requirements concerning certain goods by the Department of Defense, including chemical weapons antidotes. This NDAA section adds a new paragraph (c)(5), causing the procurement restrictions concerning chemical weapons antidotes under subsections (a)(2) and (b)(2) to expire on October 1, 2018. After that date, domestic source limitations for chemical weapons antidotes are no longer effective."
+        },
+        {
+          "reference": "section 858 of the Carl Levin and Howard P. 'Buck' McKeon National Defense Authorization Act for Fiscal Year 2015 (Public Law 113-291; 10 U.S.C. 2534 note)",
+          "explanation": "Section 858 of the FY2015 NDAA required photovoltaic devices installed via Department of Defense contracts in the U.S. to be made in the U.S. from domestic materials, subject to exceptions. This NDAA section repeals that requirement effective October 1, 2018, thereby ending the domestic manufacturing requirement for photovoltaic devices procured under covered DoD contracts."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_801",
+      "fiscal_year": 2018,
+      "section_number": "801",
+      "section_heading": "<<NOTE: 10 USC 2302 note.>> STATEMENTS OF PURPOSE FOR DEPARTMENT OF DEFENSE ACQUISITION.",
+      "dependencies": [
+        {
+          "reference": "Section 2545 of title 10, United States Code",
+          "explanation": "Section 2545 defines the 'defense acquisition system' as the workforce, management, and statutory/regulatory framework involved in DoD acquisition. The NDAA section uses this definition to clarify the scope for new statements of purpose in DFARS, but does not change the definition itself."
+        },
+        {
+          "reference": "Section 108 of the National Security Act of 1947 (50 U.S.C. 3043)",
+          "explanation": "Section 3043 requires the President to submit an annual national security strategy report to Congress. The NDAA section references this to connect the DoD acquisition system's purpose to supporting national security strategy, but does not amend or alter section 3043."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2018_221",
+      "fiscal_year": 2018,
+      "section_number": "221",
+      "section_heading": "EXPANSION OF DEFINITION OF COMPETITIVE PROCEDURES TO INCLUDE COMPETITIVE SELECTION FOR AWARD OF SCIENCE AND TECHNOLOGY PROPOSALS.",
+      "dependencies": [
+        {
+          "reference": "Section 2302(2)(B) of title 10, United States Code",
+          "explanation": "Section 2302(2)(B) defined 'competitive procedures' to include the competitive selection for award of basic research proposals. This NDAA section amends that definition by striking 'basic research' and inserting 'science and technology', thus expanding the scope to cover a broader range of research and technology proposal awards as competitive procedures in Defense procurement."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_1811",
+      "fiscal_year": 2017,
+      "section_number": "1811",
+      "section_heading": "SCOPE OF REVIEW BY PROCUREMENT CENTER REPRESENTATIVES.",
+      "dependencies": [
+        {
+          "reference": "15 U.S.C. 644(l)",
+          "explanation": "This section defines the role and authorities of procurement center representatives in federal contracting. The NDAA adds a new paragraph (9) prohibiting the Administrator from limiting the scope of review by procurement center representatives for most contract/task order solicitations, and requires the Administrator to limit such reviews for certain Department of Defense solicitations (described in new (B)), unless the contracting agency requests review."
+        },
+        {
+          "reference": "15 U.S.C. 644(g)(2)(B)",
+          "explanation": "This subsection sets requirements for federal agency small business contracting goals. The NDAA adds a sentence clarifying that contracts excluded from procurement center representative review under subsection (l)(9)(B) must not be included when the agency establishes these goals."
+        },
+        {
+          "reference": "22 U.S.C. 2762",
+          "explanation": "Section 2762 authorizes Department of Defense contracts for sales to foreign countries under the Arms Export Control Act. The NDAA amends the Small Business Act to require that procurement center representatives' reviews be limited for DoD solicitations conducted under this authority unless specifically requested by the contracting agency."
+        },
+        {
+          "reference": "10 U.S.C. 401(e)",
+          "explanation": "Section 401 defines 'humanitarian operation' in the context of military humanitarian and civic assistance. The NDAA specifies that procurement center representatives' reviews are to be limited for DoD solicitations for humanitarian operations as defined here, unless the agency requests a review."
+        },
+        {
+          "reference": "10 U.S.C. 101(a)(13)",
+          "explanation": "Section 101(a)(13) defines 'contingency operation' as military actions designated by the Secretary of Defense. The NDAA amends the Small Business Act to require that procurement center representatives' review is limited for DoD solicitations for contingency operations unless the agency requests review."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_1216",
+      "fiscal_year": 2017,
+      "section_number": "1216",
+      "section_heading": "<<NOTE: 10 USC 2241 note.>> PROHIBITION ON USE OF FUNDS FOR CERTAIN PROGRAMS AND PROJECTS OF THE DEPARTMENT OF DEFENSE IN AFGHANISTAN THAT CANNOT BE SAFELY ACCESSED BY UNITED STATES GOVERNMENT PERSONNEL.",
+      "dependencies": [
+        {
+          "reference": "the date of the enactment of this Act",
+          "explanation": "Refers to the date the NDAA for Fiscal Year 2017 (Public Law 114-328) was enacted, which is December 23, 2016. The prohibition on obligating or expending funds applies only to programs or projects initiated on or after this date."
+        },
+        {
+          "reference": "10 U.S.C. 2241 note",
+          "explanation": "This NDAA section creates a new provision as a note under 10 U.S.C. 2241 concerning Department of Defense funding restrictions. It does not alter the existing text of 10 U.S.C. 2241 itself, but provides an additional restriction: DOD cannot fund Afghanistan programs/projects unless U.S. oversight can be safely conducted, with waivers and notification requirements."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_888",
+      "fiscal_year": 2017,
+      "section_number": "888",
+      "section_heading": "<<NOTE: 10 USC 2305 note.>> REQUIREMENT AND REVIEW RELATING TO USE OF BRAND NAMES OR BRAND- NAME OR EQUIVALENT DESCRIPTIONS IN SOLICITATIONS.",
+      "dependencies": [
+        {
+          "reference": "section 2304(f) of title 10, United States Code",
+          "explanation": "10 USC 2304(f) requires written justification and approval at specified levels for the use of non-competitive (sole source or limited source) contracting procedures. This NDAA section extends this requirement to any DoD solicitation using brand names, brand-name or equivalent descriptions, or proprietary specifications/standards, establishing that a justification must be provided and approved per section 2304(f) for such specifications."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_875",
+      "fiscal_year": 2017,
+      "section_number": "875",
+      "section_heading": "<<NOTE: 10 USC 2305 note.>> USE OF COMMERCIAL OR NON- GOVERNMENT STANDARDS IN LIEU OF MILITARY SPECIFICATIONS AND STANDARDS.",
+      "dependencies": [
+        {
+          "reference": "10 USC 2305 note",
+          "explanation": "The note to 10 U.S.C. § 2305 includes prior guidance on DoD acquisition practices, particularly regarding specifications and standards. This NDAA section reinforces and expands these acquisition reform directives, requiring DoD to use commercial or non-government standards in lieu of military ones unless impractical, update policies and training, revise DFARS to encourage these practices, and partner with industry in standards development and licensing."
+        },
+        {
+          "reference": "Defense Federal Acquisition Regulation Supplement (DFARS)",
+          "explanation": "DFARS governs defense procurement regulations. Section 875 requires the Under Secretary of Defense for Acquisition, Technology, and Logistics to revise DFARS within 180 days to encourage contractors to propose commercial or non-government standards and practices, thus implementing acquisition reform within DoD procurement regulations."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_846",
+      "fiscal_year": 2017,
+      "section_number": "846",
+      "section_heading": "<<NOTE: 10 USC 2334 note.>> REPEAL OF MAJOR AUTOMATED INFORMATION SYSTEMS PROVISIONS.",
+      "dependencies": [
+        {
+          "reference": "chapter 144A of title 10, United States Code",
+          "explanation": "Chapter 144A established statutory requirements and reporting rules for major automated information system (MAIS) programs in the Department of Defense, including definitions, reporting thresholds, and oversight procedures. This NDAA section repeals chapter 144A entirely, eliminating legal frameworks and reporting requirements specifically for MAIS programs."
+        },
+        {
+          "reference": "the tables of chapters at the beginning of subtitle A of such title, and at the beginning of part IV of subtitle A",
+          "explanation": "These are the organizational tables in Title 10 that list chapters by name. This NDAA section removes the listing for chapter 144A in both tables, reflecting the repeal of that chapter."
+        },
+        {
+          "reference": "section 2334(a)(2) of title 10, United States Code",
+          "explanation": "Section 2334(a)(2) established the Director of Cost Assessment and Program Evaluation's duty to provide cost estimation guidance for major defense acquisition programs and major automated information system programs. This NDAA section amends 2334(a)(2) by striking reference to 'major automated information system under chapter 144A,' so the explicit requirement for independent cost estimates no longer applies to MAIS programs."
+        },
+        {
+          "reference": "10 USC 2445a prec., 2445a-2445d",
+          "explanation": "Sections 2445a through 2445d make up the substantive text of chapter 144A: definitions, annual and quarterly reporting, notice and certification requirements, and treatment when a program overlaps with major defense acquisition. This NDAA section repeals all these statutory provisions."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_831",
+      "fiscal_year": 2017,
+      "section_number": "831",
+      "section_heading": "PREFERENCE FOR PERFORMANCE-BASED CONTRACT PAYMENTS.",
+      "dependencies": [
+        {
+          "reference": "Section 2307(b) of title 10, United States Code",
+          "explanation": "Amends 10 USC 2307(b) to expressly prefer performance-based payments for contract financing, clarifies these payments depend only on performance outcomes (not incurred costs), ensures nontraditional and private contractors are eligible, requires only compliance with GAAP for accounting systems (no government-specific requirements), and prevents DCAA from auditing GAAP compliance. Reorganizes and expands this subsection to strengthen the push for performance-based payment methods."
+        },
+        {
+          "reference": "10 USC 2307 note (regulatory implementation requirement)",
+          "explanation": "Requires the Secretary of Defense to revise DFARS within 120 days to reflect the amended provisions in 10 USC 2307(b), ensuring timely regulatory adoption of the preference and criteria for performance-based payments established by this NDAA section."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_824",
+      "fiscal_year": 2017,
+      "section_number": "824",
+      "section_heading": "TREATMENT OF INDEPENDENT RESEARCH AND DEVELOPMENT COSTS ON CERTAIN CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "Section 2372 of title 10, United States Code",
+          "explanation": "This section previously governed regulations for payment of independent research and development (IR&D) costs by DoD. The NDAA section replaces it entirely, clarifying regulations for reporting and allowability, adding requirements for information exchange between DoD and contractors, and specifying the effective date for these regulations."
+        },
+        {
+          "reference": "Section 2324(l) of title 10, United States Code",
+          "explanation": "Defines 'covered contracts' for purposes of allowable costs under defense contracts. The NDAA section requires bid and proposal costs to be allowable as indirect expenses on such contracts, provided they are allocable, reasonable, and not otherwise unallowable under law or FAR."
+        },
+        {
+          "reference": "Section 1705 of title 10, United States Code",
+          "explanation": "Establishes the Department of Defense Acquisition Workforce Development Fund. The NDAA section allows this fund to support the advisory panel established when DoD exceeds its goal for reimbursable bid and proposal costs."
+        },
+        {
+          "reference": "Section 2313a of title 10, United States Code",
+          "explanation": "Requires an annual report from the Defense Contract Audit Agency. The NDAA section amends this report to add summaries, by dollar amount and percentage, of contractor indirect costs for IR&D and bid and proposal costs, effective October 1, 2018."
+        },
+        {
+          "reference": "Table of sections at the beginning of chapter 139 of title 10",
+          "explanation": "The NDAA section updates the table of sections to reflect the new headings for section 2372 ('Independent research and development costs: allowable costs') and adds section 2372a ('Bid and proposal costs: allowable costs')."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2017_822",
+      "fiscal_year": 2017,
+      "section_number": "822",
+      "section_heading": "ENHANCED COMPETITION REQUIREMENTS.",
+      "dependencies": [
+        {
+          "reference": "Section 2306a of title 10, United States Code",
+          "explanation": "This section sets federal procurement requirements for cost or pricing data ('truth in negotiations'). The NDAA amendment clarifies that certified cost or pricing data must be submitted for contracts using procedures other than sealed-bid procedures that are only expected to receive one bid, narrows the competition exception to cases where there are at least two or more responsive and viable competing bids, and adds a new provision making the prime contractor responsible for determining whether a subcontract qualifies for the competition exception from cost/pricing data submission requirements."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2016_898",
+      "fiscal_year": 2016,
+      "section_number": "898",
+      "section_heading": "<<NOTE: 10 USC 2304 note.>> COMPETITION FOR RELIGIOUS SERVICES CONTRACTS.",
+      "dependencies": [
+        {
+          "reference": "10 USC 2304 note",
+          "explanation": "10 U.S.C. § 2304 sets general rules for competition in DoD contracting. This NDAA section adds a legal note to that statute clarifying that the Department of Defense cannot prevent non-profit organizations from competing for contracts related to religious services on U.S. military installations. The concrete effect is to strengthen openness and competition for these specific contracts by explicitly allowing non-profits to participate."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2016_885",
+      "fiscal_year": 2016,
+      "section_number": "885",
+      "section_heading": "AMENDMENTS CONCERNING DETECTION AND AVOIDANCE OF COUNTERFEIT ELECTRONIC PARTS.",
+      "dependencies": [
+        {
+          "reference": "Section 818(c)(2)(B) of the National Defense Authorization Act for Fiscal Year 2012 (Public Law 112-81; 10 U.S.C. 2302 note)",
+          "explanation": "This provision set out contractor responsibilities related to detection and avoidance of counterfeit electronic parts in defense contracts. The FY16 NDAA amends it by: (1) clarifying that avoidance pertains specifically to counterfeit 'electronic' parts; (2) specifying that cost allowability only applies to 'covered' items and referencing eligible acquisition per relevant regulations; (3) requiring contractors to act when they discover counterfeit electronic parts or suspect such parts, making explicit their duty to report and remediate when discovery occurs."
+        },
+        {
+          "reference": "Section 818(c)(3)(D)(iii) of the National Defense Authorization Act for Fiscal Year 2012 (Public Law 112-81; 10 U.S.C. 2302 note)",
+          "explanation": "This clause previously required only 'review and audit' of trusted supplier identification by Department officials. The FY16 NDAA changes it to require 'review, audit, and approval,' thereby expanding oversight to require formal approval in addition to review or audit for trusted suppliers chosen by contractors."
+        },
+        {
+          "reference": "10 U.S.C. 2302 note",
+          "explanation": "This note contains implementing provisions from the NDAA 2012 concerning policies for detection and avoidance of counterfeit electronic parts. The FY16 NDAA updates this note through amendments to contractor and trusted supplier rules, strengthening compliance and making targeted clarifications to responsibilities and oversight as reflected in the changes above."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2016_861",
+      "fiscal_year": 2016,
+      "section_number": "861",
+      "section_heading": "AMENDMENT TO MENTOR-PROTEGE PROGRAM.",
+      "dependencies": [
+        {
+          "reference": "Section 831 of the National Defense Authorization Act for Fiscal Year 1991 (Public Law 101-510; 104 Stat. 1607; 10 U.S.C. 2302 note)",
+          "explanation": "This established the DoD Mentor-Protégé Program. NDAA 2016 section 861 substantially revises this section: expands the program's purposes, conditions, eligibility definitions, reporting and review requirements, and extends expiration dates. The original text could not be retrieved (unresolved), so changes are based only on the NDAA 2016 instructions."
+        },
+        {
+          "reference": "Small Business Act (15 U.S.C. 631 et seq.)",
+          "explanation": "The Small Business Act sets federal small business policy and definitions. The NDAA 2016 section clarifies references and cross-references this Act in the Mentor-Protégé Program, including explicit statutory citations."
+        },
+        {
+          "reference": "Section 3(a) of the Small Business Act (15 U.S.C. 632(a)) and regulations promulgated pursuant thereto",
+          "explanation": "Section 3(a) defines 'small business concern.' The NDAA modifies Mentor-Protégé definitions by cross-referencing the broader statutory definition and removing regulatory references."
+        },
+        {
+          "reference": "Section 8(d)(7) of the Small Business Act (15 U.S.C. 637(d)(7))",
+          "explanation": "This requires contractors to report annually on small business subcontracting. NDAA section 861 creates a detailed annual reporting requirement for mentor firms to be compliant with this provision, specifying new data categories."
+        },
+        {
+          "reference": "Section 21 of the Small Business Act (15 U.S.C. 648)",
+          "explanation": "This authorizes Small Business Development Centers (SBDCs) to assist small businesses. NDAA section 861 requires mentors to report if protégés receive assistance from SBDCs as part of annual reporting."
+        },
+        {
+          "reference": "Entities providing procurement technical assistance pursuant to chapter 142 of title 10, United States Code",
+          "explanation": "Chapter 142 authorizes Procurement Technical Assistance Centers. NDAA section 861 mandates mentor firms to report assistance obtained for protégés from these entities."
+        },
+        {
+          "reference": "Historically Black colleges or universities or minority institutions of higher education",
+          "explanation": "No specific statute cited, but these institutions participate in DoD diversity programs. NDAA section 861 requires mentor firms to report if they secure assistance from such institutions for protégés."
+        },
+        {
+          "reference": "Section 2302 of title 10, United States Code",
+          "explanation": "Section 2302 defines 'nontraditional defense contractor.' NDAA section 861 expands eligibility for the Mentor-Protégé Program to include such contractors and establishes criteria for small business eligibility."
+        },
+        {
+          "reference": "Section 8501 of title 41, United States Code",
+          "explanation": "Section 8501 defines 'blind' and 'severely disabled individual' for procurement. NDAA section 861 updates and clarifies Mentor-Protégé definitions by cross-referencing these statutory terms."
+        },
+        {
+          "reference": "Section 632(p) of title 15, United States Code",
+          "explanation": "This provides definitions for HUBZone small business concerns. NDAA section 861 corrects references in Mentor-Protégé definitions to ensure compliance with HUBZone status."
+        },
+        {
+          "reference": "Chapter 142 of title 10, United States Code",
+          "explanation": "Repeats the reference for procurement technical assistance. NDAA section 861 requires reporting of such assistance from authorized programs."
+        },
+        {
+          "reference": "Section 637 of title 15, United States Code",
+          "explanation": "Section 637 covers additional SBA powers including contracts to disadvantaged businesses. NDAA section 861 incorporates its reporting requirements into the Mentor-Protégé annual report."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2016_815",
+      "fiscal_year": 2016,
+      "section_number": "815",
+      "section_heading": "AMENDMENTS TO OTHER TRANSACTION AUTHORITY.",
+      "dependencies": [
+        {
+          "reference": "10 U.S.C. 2371",
+          "explanation": "10 U.S.C. 2371 allows DoD to carry out research projects using flexible 'other transactions' authority (outside standard contracts, grants, or cooperative agreements). NDAA 2016 Section 815 builds on this by adding section 2371b, which extends similar flexible authority to prototype projects, introducing specific thresholds, approvals, and oversight."
+        },
+        {
+          "reference": "10 U.S.C. 2371a",
+          "explanation": "Section 2371a allows federally funded research centers to enter into cooperative research and development agreements. Section 815 inserts the new section 2371b after 2371a, establishing where prototype authority fits in the Code, but doesn't amend section 2371a's substance."
+        },
+        {
+          "reference": "10 U.S.C. 2302(9)",
+          "explanation": "Section 815 amends the definition of 'nontraditional defense contractor' in 10 U.S.C. 2302(9), making it clear that eligible entities must not have performed DoD contracts subject to full federal cost accounting standards (41 U.S.C. 1502) for at least the previous year before a procurement or transaction solicitation. This ties eligibility to the expanded prototype authority."
+        },
+        {
+          "reference": "41 U.S.C. 1702(c)",
+          "explanation": "41 U.S.C. 1702(c) defines senior procurement executives for federal agencies. The new section 2371b requires these officials to approve high-value prototype projects, without amending the original section; it uses the responsibilities as a control for prototype authority."
+        },
+        {
+          "reference": "15 U.S.C. 632",
+          "explanation": "15 U.S.C. 632 defines 'small business concern.' Section 815 refers to this definition for participant eligibility in prototype projects under new section 2371b, using the Small Business Act thresholds and requirements."
+        },
+        {
+          "reference": "10 U.S.C. 2304",
+          "explanation": "10 U.S.C. 2304 establishes competition requirements for federal contracts. Section 815 (new section 2371b(f)) allows DoD to award follow-on production contracts or transactions from prototype agreements without competitive procedures, under specific conditions, overriding the usual requirements of section 2304 in those cases."
+        },
+        {
+          "reference": "41 U.S.C. 1502",
+          "explanation": "41 U.S.C. 1502 establishes Federal Cost Accounting Standards, governing contract cost accounting requirements. Section 815 uses this section (via reference in amended 2302(9)) as the standard for determining whether an entity is a 'nontraditional defense contractor.'"
+        },
+        {
+          "reference": "Section 845 of the NDAA for FY1994 (Public Law 103-160; 10 U.S.C. 2371 note)",
+          "explanation": "Section 815 repeals section 845, which previously authorized DoD to use other transactions for prototype projects. Transactions entered under the repealed section 845 remain in effect and must be modified as appropriate to reflect the new amendments. (Reference could not be resolved; instruction is clear from NDAA text.)"
+        },
+        {
+          "reference": "Section 1601(c)(1)(B) of the NDAA for FY2004 (Public Law 108-136; 10 U.S.C. 2358 note)",
+          "explanation": "Section 815 amends subparagraph (B) to reference both section 2371 and new section 2371b, ensuring technical correctness and reflecting the expanded prototype project authority for acquisition and procurement purposes."
+        },
+        {
+          "reference": "41 U.S.C. Chapter 21",
+          "explanation": "Chapter 21 of title 41 contains procurement ethics requirements. Section 815 (new section 2371b(h)) ensures that prototype agreements using other transaction authority are subject to these same ethical standards."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2016_812",
+      "fiscal_year": 2016,
+      "section_number": "812",
+      "section_heading": "APPLICABILITY OF COST AND PRICING DATA AND CERTIFICATION REQUIREMENTS.",
+      "dependencies": [
+        {
+          "reference": "Section 2306a(b)(1) of title 10, United States Code",
+          "explanation": "10 U.S.C. 2306a(b)(1) provides exceptions to the requirement for certified cost or pricing data in defense contracts. This amendment adds a new exception (subparagraph D) to exempt the submission of cost and pricing data that relates to offset agreements for sales of weapon systems or defense items to foreign countries or firms, except for data that relates to work performed in such country or by such firm that is directly related to the item being purchased. This broadens the pricing data waiver for international offset agreements."
+        }
+      ]
+    },
+    {
+      "ndaa_id": "2013_1651",
+      "fiscal_year": 2013,
+      "section_number": "1651",
+      "section_heading": "LIMITATIONS ON SUBCONTRACTING.",
+      "dependencies": [
+        {
+          "reference": "The Small Business Act (15 U.S.C. 631 et seq.)",
+          "explanation": "The Small Business Act sets policies and operational rules for federal support of small businesses, including eligibility for contracting programs and requirements. This section amends the Act by adding a new Section 46, establishing explicit limits on how much of a contract a covered small business concern can subcontract, as well as requirements for similarly situated entities and domestic manufacturing."
+        },
+        {
+          "reference": "Section 47 (as redesignated by section 1641 of this subtitle)",
+          "explanation": "Section 1641 of the NDAA 2013 redesignated Section 45 of the Small Business Act as Section 47, and inserted a new section on mentor-protege programs. Here, the new limitations on subcontracting (Section 46) are placed just before the newly redesignated Section 47, changing the order and numbering in the statute."
+        },
+        {
+          "reference": "section 8(a), 8(m), 15(a), 31, or 36",
+          "explanation": "These are provisions in the Small Business Act that authorize specific contracting programs: 8(a) (contracts for socially/economically disadvantaged small business concerns), 8(m) (women-owned small businesses), 15(a) (general small business contracting), 31 (HUBZone program, 15 U.S.C. 657a), and 36 (service-disabled veteran-owned small businesses, 15 U.S.C. 657f). This NDAA section establishes new limits on how much these covered small businesses can subcontract on contracts awarded under any of these authorities."
+        },
+        {
+          "reference": "section 1641 of this subtitle",
+          "explanation": "Section 1641 of NDAA 2013 establishes mentor-protege programs for small businesses and redesignates statutory sections of the Small Business Act. Its effect here is organizational, specifying where the new Section 46 should be inserted into the existing statute."
+        }
+      ]
+    }
+  ]
+}
