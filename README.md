@@ -1,11 +1,44 @@
-This is a project that aims at automating the process of updating the DFARS in accordance with the NDAA that is published annually.
+# Prerequisites
+## Data
+The following files are required. Everything else can be fetched from publicly available APIs.
+1. [Implementation Tracker](https://www.acq.osd.mil/dpap/dars/docs/DFARS_NDAA_Implementation_Tracker_2025-06-06.pdf) - maintained by DARS to keep track of NDAA to DFARS implementations. Format: PDF
+2. `ndaa_plaw.csv` Fiscal Year -> Public Law mapping. Used to by this [[Useful APIs#^2eebfd|govinfo api]] to download the HTML of the NDAA for a given year. (I forgot where I got the csv from, but trust me) Format: HTML ^ndaa-plaw-csv
+3. [FAR Drafting Guide](https://www.acq.osd.mil/dpap/dars/docs/far_dfars_guide/FAR%20Drafting%20Guide--April%2030,%202011.pdf) - Edited version is used as a system prompt for drafting changes.
+## Infra
+1. [uv](https://docs.astral.sh/uv/)
+2. Mongo DB instance
+   - Set `MONGO_CLIENT_URI` in `.env` 
+   - If setting up locally: `docker compose up -d`
+# Setup
+Parse the tracker (by default looks for `tracker.pdf` in project root):
+```sh
+$ uv sync
+$ uv run python parse_tracker.py
+```
+## NDAA
+1. Fetch Public Laws, parse HTML and ingest all the NDAAs to MongoDB.
+```sh
+$ uv run python ndaa/extract_and_ingest.py
+```
+2. **Uses OpenAI API calls:** Extract citations from all the NDAAs. 
+```sh
+# use with --replace to replace existing docs 
+$ uv run python ndaa/extract_citations.py 
+```
+## DFARS
+```sh
+# scrape FR to get list of DFARS sections per case
+$ uv run python dfars/scrape_fr.py 
 
-Collecting previous year data for evaluation
+# scrape the eCFR to get snapshots of DFARS for each case in XML format
+$ uv run python dfars/scrape_ecfr.py
 
-The project begins with the tracker.pdf that contains all the information about the timeline of DFARS implementation based on the NDAA. We focus on extracting rows with "Final Rule" dated January 1st 2017 or later since ecfr.gov only has data till then. We parse the pdf and extract the following:
-- NDAA Year and Section
-- FRN Citation 
-- Data of the Final Rule 
-- Case Number
+# parse the xml into DFARS nodes - subpart, section, subsection
+$ uv run python dfars/extract_heirarchy.py
 
-FRN Citation will be used to query the federalregister.gov to fetch FR cases associated with the corresponding NDAA. We get the list of all DFARS parts affected from the API for each FRN Citation (and hence for each NDAA). This gives us a mapping from the NDAA section to the DFARS parts.
+# ingest into mongodb
+$ uv run python dfars/ingest_dfars.py
+
+# DFARS before and after indexed by NDAA
+$ uv run python dfars/dfars_diff.py
+```

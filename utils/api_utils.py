@@ -194,12 +194,37 @@ def get_sections(citation, fr_date):
 GOVINFO_LINK_URL = "https://www.govinfo.gov/link"
 
 
-def _extract_body_text(html_text):
+def _truncate_before(node):
+    """Drop ``node`` and everything after it in document order, keeping prior content.
+
+    Removes the node's following siblings, then climbs to each ancestor and removes its
+    following siblings too, so only content that precedes ``node`` survives. Only ``node``
+    itself is decomposed; ancestors are kept because they also hold the preceding content.
+    """
+    first = True
+    while node is not None and node.tag != "body":
+        sibling = node.next
+        while sibling is not None:
+            nxt = sibling.next
+            sibling.decompose()
+            sibling = nxt
+        parent = node.parent
+        if first:
+            node.decompose()
+            first = False
+        node = parent
+
+
+def _extract_body_text(html_text, stop_before_class=None):
     """Extract readable plain text from a GovInfo document's HTML body.
 
     GovInfo serves laws/statutes as ``<pre>``-formatted text and U.S. Code sections as
     styled block elements; ``separator="\\n"`` handles both, and runs of blank lines
     are collapsed. Returns ``None`` if the body is empty.
+
+    When ``stop_before_class`` is given, the first element bearing that CSS class and
+    everything following it are dropped before the text is extracted (e.g. the
+    ``source-credit`` trailer on U.S. Code sections).
     """
     tree = HTMLParser(html_text)
     for node in tree.css("head"):
@@ -208,19 +233,26 @@ def _extract_body_text(html_text):
     if body is None:
         return None
 
+    if stop_before_class is not None:
+        stop = body.css_first(f".{stop_before_class}")
+        if stop is not None:
+            _truncate_before(stop)
+
     text = body.text(separator="\n", strip=False)
     lines = [line.rstrip() for line in text.splitlines()]
     cleaned = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
     return cleaned or None
 
 
-def _govinfo_text(path, **extra_params):
+def _govinfo_text(path, stop_before_class=None, **extra_params):
     """Fetch a link service document as HTML and return its extracted plain text.
 
     Requests ``link-type=html`` and follows the service's redirect to the document.
 
     Args:
         path: the link path after ``/link/``, e.g. ``"uscode/10/2304"``.
+        stop_before_class: when set, drop the first element with this CSS class and
+            everything after it before extracting text (see ``_extract_body_text``).
         **extra_params: additional query parameters (e.g. ``type``, ``year`` for USC);
             keys whose value is ``None`` are dropped.
 
@@ -242,7 +274,7 @@ def _govinfo_text(path, **extra_params):
 
     # GovInfo serves UTF-8 but sends no charset, so requests defaults to ISO-8859-1.
     response.encoding = "utf-8"
-    return _extract_body_text(response.text)
+    return _extract_body_text(response.text, stop_before_class=stop_before_class)
 
 
 # ─── GovInfo: Public and Private Laws (PLAW) ───────────────────────────────────────
@@ -303,20 +335,22 @@ def get_usc_section(title, section, usc_type="usc", year=None):
     Args:
         title: U.S. Code title number, e.g. ``10``.
         section: section number, e.g. ``2304`` (may include a hyphen, e.g.
-            ``"2403-1"``).
+            ``"2403-1"``). Always prefer with just the section number without anything trailing it. 
         usc_type: ``"usc"`` (default) for the main Code or ``"uscappendix"`` for an
             appendix section.
         year: four-digit edition year (e.g. ``2011``) or ``"mostrecent"``. When None,
             the link service returns the most recent edition.
 
     Returns:
-        The section's plain text, or ``None`` if it can't be found or fetched.
+        The section's plain text up to (but excluding) the trailing ``source-credit``
+        paragraph, or ``None`` if it can't be found or fetched.
         Example: ``get_usc_section(10, 2304)``.
     """
     return _govinfo_text(
         f"uscode/{title}/{section}",
-        type=usc_type if usc_type != "usc" else None,
+        type=usc_type,
         year=year,
+        stop_before_class="source-credit",
     )
 
 

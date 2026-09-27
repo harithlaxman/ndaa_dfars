@@ -1,14 +1,13 @@
 """
 Download DFARS (Title 48, chapter 2) eCFR XML snapshots for every DFARS Final Rule
-in fr_cases.csv, picking an accurate after/before snapshot pair per rule for diffing.
+in data/all_frcases.csv, picking an accurate after/before snapshot pair per rule for diffing.
 
 Only chapter 2 is fetched (?chapter=2): it is the entire DFARS, downloads in seconds
 (~4 MB vs the full title, which currently 504-times out), and lands directly in
-data/DFARS/ — the same layout extract_hierarchy.py / ingest_dfars.py read — so the
-strip_dfars_chapters.py step is not needed for DFARS.
+data/DFARS/ — where extract_hierarchy.py reads it.
 
 eCFR records each amendment on the rule's EFFECTIVE date, which can differ slightly
-from the effective_on date in fr_cases, so for each FR case we query the eCFR
+from the effective_on date in all_frcases, so for each FR case we query the eCFR
 versions API for every affected CFR part to find the date its amendments actually
 landed:
 
@@ -17,7 +16,7 @@ landed:
   - after  = the latest of those per-part earliest dates;
   - before = one day before the earliest of those per-part earliest dates.
 
-Also writes data/DFARS/dfars_diffs.csv mapping each fr_cases row to its before/
+Also writes data/dfars_diffs.csv mapping each all_frcases row to its before/
 after snapshot files.
 """
 import requests
@@ -29,7 +28,7 @@ from tqdm import tqdm
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 INPUT_CSV = str(_PROJECT_ROOT / "data" / "all_frcases.csv")
-OUTPUT_DIR = _PROJECT_ROOT / "data" / "DFARS" / "raw_xmls"
+OUTPUT_DIR = _PROJECT_ROOT / "data" / "DFARS"
 MANIFEST_CSV = _PROJECT_ROOT / "data" / "dfars_diffs.csv"
 
 TITLE = "48"
@@ -109,20 +108,26 @@ def select_snapshot_dates(eff_date, parts, cache):
 
 
 def fetch_title(date, out_path):
-    """Stream the DFARS (Title-48 chapter-2) XML for `date` to `out_path`, with one retry."""
+    """Stream the DFARS (Title-48 chapter-2) XML for `date` to `out_path`, with one retry.
+
+    The download goes to a `.part` file that is renamed into place only once
+    complete, so an interrupted run never leaves a truncated snapshot that
+    later runs would skip as already present.
+    """
     url = BASE_URL.format(date=date.isoformat(), title=TITLE)
     params = {"chapter": CHAPTER}
+    tmp_path = out_path.with_suffix(".part")
     for attempt in range(2):
         try:
             with requests.get(url, params=params, timeout=120, stream=True) as resp:
                 resp.raise_for_status()
-                with open(out_path, "wb") as f:
+                with open(tmp_path, "wb") as f:
                     for chunk in resp.iter_content(chunk_size=1 << 16):
                         f.write(chunk)
+            tmp_path.replace(out_path)
             return True
         except requests.exceptions.RequestException as e:
-            # Don't leave a partial file behind on failure.
-            out_path.unlink(missing_ok=True)
+            tmp_path.unlink(missing_ok=True)
             if attempt == 1:
                 tqdm.write(f"  Failed {date.isoformat()}: {e}")
     return False
@@ -161,8 +166,6 @@ def main():
     dates = set()
     version_cache = {}
     for _, row in df.iterrows():
-        if pd.isna(row.get("effective_on")):
-            continue
         for case, date_str, parts in split_row_cases(row):
             eff_date = parse_fr_date(date_str)
             if eff_date is None:

@@ -102,7 +102,7 @@ All amendments to the FAR/DFARS should comply with following rules.
     - **(i)** "Solicitation provision" or "provision" for items used only in solicitations and applying before award; and
     - **(ii)** "Contract clause" or "clause" for items used in both solicitations and contracts, applying after award or both before and after award.
   - **(2) Text**
-    - **(i)** Put the text of all provisions and clauses in Subpart 52.2, following the conventions in this document.
+    - **(i)** Put the text of all provisions and clauses in Subpart 252.2, following the conventions in this document.
     - **(ii)** Direct provisions and clauses to the offeror or contractor. Provisions and clauses must adequately convey the responsibility of the offeror or contractor and must be consistent with the subject text.
     - **(iii)** Do not use provisions or clauses to prescribe policy not found in the subject text.
     - **(iv)** Provisions and clauses also should stand alone. Do not refer to the subject text of the FAR/DFARS in provisions and clauses, unless necessary to avoid extremely lengthy repetition of passages verbatim from the subject text.

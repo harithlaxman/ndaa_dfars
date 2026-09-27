@@ -90,9 +90,9 @@ def run_tool_loop(client, input_messages, tools, dispatch, max_turns: int = 8):
 
     Returns:
         The full ``input_messages`` conversation, including every function_call the model
-        made and the function_call_output we fed back. Tool errors and empty (``None``)
-        results are reported back to the model as short strings rather than raised, so the
-        loop is resilient.
+        made and the function_call_output we fed back. Empty results (``None``, ``""``,
+        ``[]``, ``{}``) are reported back to the model as ``"<no result found>"`` and tool
+        exceptions as ``"<tool error: ...>"`` rather than raised, so the loop is resilient.
     """
     for _ in range(max_turns):
         response = client.responses.create(
@@ -111,9 +111,10 @@ def run_tool_loop(client, input_messages, tools, dispatch, max_turns: int = 8):
                 args = json.loads(call.arguments) if call.arguments else {}
                 print(f"  tool: {call.name}({json.dumps(args)})")
                 result = dispatch[call.name](**args)
-                output = result if isinstance(result, str) else json.dumps(result)
-                if not output:
+                if result is None or result == "" or result == [] or result == {}:
                     output = "<no result found>"
+                else:
+                    output = result if isinstance(result, str) else json.dumps(result)
             except Exception as e:  # surface tool failures to the model, don't crash the loop
                 output = f"<tool error: {e}>"
             input_messages.append(

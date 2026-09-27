@@ -12,7 +12,9 @@ front, so no eCFR/Federal-Register call is needed at diff time:
 So the job reduces to: read the amended sections from the CSV, load the
 before/after snapshots from Mongo (``ndaa_dfars.dfars``), and diff those
 sections' node text. Output schema (consumed by the drafting pipeline) is
-``{n_sections, sections:[{ndaa_year, ndaa_section, cases:[{case, changes:[...]}]}]}``.
+``{n_sections, sections:[{ndaa_year, ndaa_section, amended_sections, n_cases,
+cases:[{case, before_snapshot, after_snapshot, before_present, after_present,
+changes:[...]}]}]}``.
 """
 import csv
 import json
@@ -33,6 +35,9 @@ COLL = "dfars"
 
 _WS = re.compile(r"\s+")
 
+# The ``before`` of a clause/provision added in Part 252 (see _parent_before).
+PART_252_BEFORE = "Part 252 - SOLICITATION PROVISIONS AND CONTRACT CLAUSES"
+
 
 def parse_date(s: str) -> datetime:
     """Parse a manifest ISO date (YYYY-MM-DD) into a datetime."""
@@ -49,20 +54,19 @@ def _norm(text: str) -> str:
 
 
 def _heading(section: dict) -> str:
-    """Best-effort heading for a node.
+    """The node's heading, minus its leading number for SECTION/SUBSECTION.
 
-    The heading is the first line of ``section.text``, e.g. "201.104
-    Applicability.", "Subpart 201.1 - Purpose, Authority, Issuance", or
-    "PART 201 - FEDERAL ACQUISITION REGULATIONS SYSTEM". Strip the leading
-    number for SECTION/SUBSECTION, or the "<label> - " prefix for PART/SUBPART.
+    ``section.heading`` is the HEAD text, e.g. "201.104 Applicability." ->
+    "Applicability."; PART/SUBPART headings ("PART 201—FEDERAL ...") are kept
+    whole. Docs ingested before ``heading`` was stored fall back to the first
+    line of ``section.text``, which is the same HEAD text.
     """
-    first = (section.get("text") or "").split("\n", 1)[0].strip()
+    head = (section.get("heading")
+            or (section.get("text") or "").split("\n", 1)[0]).strip()
     number = section.get("number", "")
-    if number and first.startswith(number):
-        return first[len(number):].strip()
-    if " - " in first:
-        return first.split(" - ", 1)[1].strip()
-    return first
+    if number and head.startswith(number):
+        return head[len(number):].strip()
+    return head
 
 
 # ─── core diff ────────────────────────────────────────────────────────────────
@@ -78,23 +82,64 @@ def _in_scope(number: str, wanted: set[str]) -> bool:
     return number in wanted or any(number.startswith(w + "-") for w in wanted)
 
 
-def _diff_maps(bmap: dict[str, dict], amap: dict[str, dict]) -> list[dict]:
-    """Changed nodes given {section_number: section-subdoc} maps for before/after."""
+def _parent_before(number: str, bfull: dict[str, dict],
+                   afull: dict[str, dict]) -> tuple[str | None, str]:
+    """``(ancestor_number, before_text)`` standing in for an added node's before.
+
+    Walks up the added node's parent chain (as it sits in the after snapshot) to
+    the nearest ancestor that exists in the before snapshot, skipping ancestors
+    that are themselves new (e.g. ``225.7019`` when ``225.7019-1`` is added with
+    it). The text is that ancestor as it read before the insertion: its own text
+    followed by each existing direct child's own text, in document order, i.e. the
+    siblings the new node joins. ``(None, "")`` if no ancestor existed.
+
+    In Part 252 the parent is usually a synthesized section (e.g. ``252.225``)
+    whose children are dozens of unrelated clauses, so an added clause instead
+    gets just the part title, ``PART_252_BEFORE``, attributed to ``252``.
+    """
+    if part_of(number) == "252":
+        return "252", PART_252_BEFORE
+    cur = (afull.get(number) or {}).get("parent")
+    while cur is not None and cur not in bfull:
+        cur = (afull.get(cur) or {}).get("parent")
+    if cur is None:
+        return None, ""
+    parent = bfull[cur]
+    nodes = [parent] + [bfull[c] for c in parent.get("children", []) if c in bfull]
+    texts = [(n.get("text") or "").strip() for n in nodes]
+    return cur, "\n\n".join(t for t in texts if t)
+
+
+def _diff_maps(bmap: dict[str, dict], amap: dict[str, dict],
+               bfull: dict[str, dict] | None = None,
+               afull: dict[str, dict] | None = None) -> list[dict]:
+    """Changed nodes given {section_number: section-subdoc} maps for before/after.
+
+    ``bfull``/``afull`` are the unscoped snapshots, used to give an added node its
+    parent's before text (see ``_parent_before``); they default to the scoped maps.
+    """
+    bfull = bmap if bfull is None else bfull
+    afull = amap if afull is None else afull
     changes = []
     for number in sorted(bmap.keys() | amap.keys()):
         bsec, asec = bmap.get(number), amap.get(number)
-        before_text = (bsec or {}).get("text", "") if bsec else ""
-        after_text = (asec or {}).get("text", "") if asec else ""
+        before_text = (bsec or {}).get("text", "")
+        after_text = (asec or {}).get("text", "")
         # Skip when there's no own-text change. The heading is part of the text,
         # so renames are caught here too. This also drops structural-only nodes
         # (e.g. a synthesized SECTION parent of -7xxx clauses) that appear or
         # vanish in the hierarchy graph with empty text on both sides.
         if _norm(before_text) == _norm(after_text):
             continue
+        before_from = number if bsec else None
         if bsec and asec:
             status = "modified"
         elif asec:
             status = "added"
+            # An added node has no before of its own; show the parent it was
+            # inserted into (with its existing children), and record which node
+            # that text came from.
+            before_from, before_text = _parent_before(number, bfull, afull)
         else:
             status = "deleted"
         changes.append({
@@ -104,6 +149,7 @@ def _diff_maps(bmap: dict[str, dict], amap: dict[str, dict]) -> list[dict]:
             "status": status,
             "heading": _heading(asec or bsec),
             "before": before_text,
+            "before_from": before_from,
             "after": after_text,
         })
     return changes
@@ -117,11 +163,11 @@ def diff_sections(before: list[dict], after: list[dict],
     independent of part. A section that didn't change between the two snapshots
     simply yields no entry.
     """
-    bmap = {d["section_number"]: d["section"]
-            for d in before if _in_scope(d["section_number"], numbers)}
-    amap = {d["section_number"]: d["section"]
-            for d in after if _in_scope(d["section_number"], numbers)}
-    return _diff_maps(bmap, amap)
+    bfull = {d["section_number"]: d["section"] for d in before}
+    afull = {d["section_number"]: d["section"] for d in after}
+    bmap = {n: s for n, s in bfull.items() if _in_scope(n, numbers)}
+    amap = {n: s for n, s in afull.items() if _in_scope(n, numbers)}
+    return _diff_maps(bmap, amap, bfull, afull)
 
 
 # ─── inputs ───────────────────────────────────────────────────────────────────
@@ -191,8 +237,7 @@ def _load_version(client, date: datetime, cache: dict) -> list[dict]:
     return cache[date]
 
 
-def diff_ndaa(client, _id: str, info: dict,
-              manifest: dict, cache: dict) -> dict:
+def diff_ndaa(client, info: dict, manifest: dict, cache: dict) -> dict:
     """Diff one NDAA: its amended sections across each before/after snapshot pair."""
     year, section = info["ndaa_year"], info["ndaa_section"]
     sections = info["sections"]
@@ -247,8 +292,8 @@ def run_all() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     reports = []
-    for _id, info in by_id.items():
-        report = diff_ndaa(client, _id, info, manifest, cache)
+    for info in by_id.values():
+        report = diff_ndaa(client, info, manifest, cache)
         reports.append(report)
         _print_section(report, verbose=False)
 
@@ -260,12 +305,12 @@ def run_all() -> None:
 
 
 def main() -> None:
-    if len(sys.argv) == 2 and sys.argv[1] in ("--all", "all"):
-        run_all()
-        return
     if len(sys.argv) != 2:
         sys.exit("usage: python dfars/dfars_diff.py <ndaa_id>   e.g. 2024_2881\n"
                  "       python dfars/dfars_diff.py --all")
+    if sys.argv[1] in ("--all", "all"):
+        run_all()
+        return
 
     _id = sys.argv[1]
     by_id = load_sections_by_id()
@@ -274,7 +319,7 @@ def main() -> None:
 
     manifest = load_manifest()
     client = getMongoClient()
-    report = diff_ndaa(client, _id, by_id[_id], manifest, {})
+    report = diff_ndaa(client, by_id[_id], manifest, {})
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUT_DIR / f"dfars_diff_{_id}.json"

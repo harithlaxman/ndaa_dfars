@@ -18,8 +18,7 @@ is idempotent — re-running overwrites the list rather than appending.
 Within a citation entry, `cite` is the citation as written (subsection parens and
 `note` kept), `section` is normalized to the bare section level (parens/`note`
 stripped) so it lines up with the section-level USC citations the NDAA extractor
-produces — and is the key used in the reverse index — and `raw` is the full
-matched span the item came from.
+produces; `raw` is the full matched span the item came from.
 
 The extractor handles the list forms that appear in the data, e.g.
 `10 U.S.C. 7504, 8354 and 3253` expands to three separate citations, while
@@ -30,28 +29,13 @@ refusing to swallow the title of a *following* citation: in
 import json
 import re
 import sys
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
 from tqdm import tqdm
 
-from dfars.extract_hierarchy import natural_key
-
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = _PROJECT_ROOT / "data" / "DFARS"
-DOCS_DIR = DATA_DIR / "docs"
-
-# DIV TYPEs whose `N` identifier should own the text directly inside them. These
-# match the hierarchy nodes built by extract_hierarchy.py; there is no separate
-# subsection type — subsections (e.g. 252.203-7000) are themselves TYPE="SECTION"
-# with the full hyphenated number as their `N`.
-TEXT_OWNING_TYPES = {"PART", "SUBPART", "SECTION"}
-
-# The bracketed Federal Register amendment history sits in its own CITA element at
-# the end of a section, e.g. "[80 FR 51745, Aug. 26, 2015, as amended at ...]". It
-# is pulled into its own field rather than left in the node's body text.
-CITA = "CITA"
+DOCS_DIR = _PROJECT_ROOT / "data" / "DFARS" / "docs"
 
 # A single section item: 2279, 2306a, 98h-1, 8502-8504, 40102(a)(4), 3204 note.
 # `(?!\d)` after each integer stops greedy `\d+` from backtracking into a partial
@@ -95,7 +79,6 @@ def _bare_section(item: str) -> str:
 
 
 def _emit(title: str, item: str, raw: str) -> dict:
-    item = item.strip()
     return {
         "cite": f"{title} U.S.C. {item}",
         "section": f"{title} U.S.C. {_bare_section(item)}",
@@ -132,36 +115,6 @@ def extract_usc_citations(text: str) -> list[dict]:
     return out
 
 
-def node_texts(path: Path) -> dict[str, str]:
-    """Map each DFARS node number to the text that sits directly inside it.
-
-    Text is attributed to the nearest enclosing PART/SUBPART/SECTION/SUBSECT node,
-    so part-level front matter (e.g. an authority note) lands under the PART rather
-    than its first section.
-    """
-    texts: dict[str, list[str]] = {}
-
-    def add(key: str | None, s: str | None) -> None:
-        if key is not None and s and s.strip():
-            texts.setdefault(key, []).append(s)
-
-    def walk(elem: ET.Element, current_key: str | None) -> None:
-        # CITA holds the amendment history, exposed separately via
-        # node_amendment_history; keep it out of the body text entirely.
-        if elem.tag == CITA:
-            return
-        if elem.attrib.get("TYPE") in TEXT_OWNING_TYPES and elem.attrib.get("N"):
-            current_key = elem.attrib["N"]
-        add(current_key, elem.text)
-        for child in elem:
-            walk(child, current_key)
-            add(current_key, child.tail)
-
-    root = ET.parse(path).getroot()
-    walk(root, None)
-    return {k: " ".join(v) for k, v in texts.items()}
-
-
 # One edit in an amendment history: a Federal Register citation followed by a date,
 # e.g. "80 FR 51745, Aug. 26, 2015". Extra pinpoint pages ("76 FR 6006, 6008, ...")
 # are ignored; the cite keeps the volume and starting page. The separator before
@@ -194,55 +147,6 @@ def parse_amendment_history(raw: str) -> list[dict]:
             "date": datetime(int(m.group("year")), month, int(m.group("day"))),
         })
     return edits
-
-
-def node_amendment_history(path: Path) -> dict[str, str]:
-    """Map each DFARS node number to its raw CITA amendment-history string.
-
-    Only nodes that carry a CITA appear in the result. A node with more than one
-    CITA (rare) has them joined in document order.
-    """
-    history: dict[str, list[str]] = {}
-
-    def walk(elem: ET.Element, current_key: str | None) -> None:
-        if elem.attrib.get("TYPE") in TEXT_OWNING_TYPES and elem.attrib.get("N"):
-            current_key = elem.attrib["N"]
-        if elem.tag == CITA and current_key and elem.text and elem.text.strip():
-            history.setdefault(current_key, []).append(elem.text.strip())
-        for child in elem:
-            walk(child, current_key)
-
-    root = ET.parse(path).getroot()
-    walk(root, None)
-    return {k: " ".join(v) for k, v in history.items()}
-
-
-def build_reverse_index(section_to_citations: dict[str, list[dict]]) -> dict[str, list[str]]:
-    """Invert the per-node citations into a section-level -> DFARS nodes map.
-
-    Keyed by the bare `section` form (so `4862(k)` and `4862` collapse together),
-    each value is the sorted, deduped list of DFARS nodes that cite it.
-    """
-    reverse: dict[str, set[str]] = {}
-    for number, cites in section_to_citations.items():
-        for entry in cites:
-            reverse.setdefault(entry["section"], set()).add(number)
-    return {
-        section: sorted(nodes, key=natural_key)
-        for section, nodes in sorted(reverse.items())
-    }
-
-
-def parse_file(path: Path) -> dict[str, dict]:
-    section_to_citations: dict[str, list[dict]] = {}
-    for number, text in node_texts(path).items():
-        cites = extract_usc_citations(text)
-        if cites:
-            section_to_citations[number] = cites
-    return {
-        "section_to_citations": section_to_citations,
-        "citation_to_sections": build_reverse_index(section_to_citations),
-    }
 
 
 def selftest() -> None:

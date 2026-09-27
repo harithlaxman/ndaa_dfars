@@ -1,7 +1,7 @@
 """Build a flat graph of the DFARS title-48 hierarchy from each XML version.
 
 For every `data/DFARS/title-48_<date>.xml` file, write a matching
-`data/DFARS/title-48_<date>.json`. The JSON is a flat map keyed by a node's
+`data/DFARS/docs/title-48_<date>.json`. The JSON is a flat map keyed by a node's
 number (its identifier), where every node has the same shape:
 
     {
@@ -84,12 +84,12 @@ def node_head(div: ET.Element) -> str:
     return "".join(head.itertext()).strip() if head is not None else ""
 
 
-def is_reserved(div: ET.Element) -> bool:
+def is_reserved(div: ET.Element, heading: str) -> bool:
     """True when the node's only content is a `[Reserved]` heading."""
     has_body = any(
         not child.tag.startswith("DIV") and child.tag != "HEAD" for child in div
     )
-    return not has_body and node_head(div).lower().endswith("[reserved]")
+    return not has_body and heading.lower().endswith("[reserved]")
 
 
 def build_section_tree(section_divs: list[ET.Element]) -> list[dict]:
@@ -190,7 +190,7 @@ def parse_file(path: Path) -> dict:
         number = div.attrib["N"]
         texts[number] = node_text(div)
         headings[number] = node_head(div)
-        if is_reserved(div):
+        if is_reserved(div, headings[number]):
             reserved.add(number)
 
     graph: dict[str, dict] = {}
@@ -258,11 +258,12 @@ def parse_file(path: Path) -> dict:
 
 
 def main() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    docs_dir = DATA_DIR / "docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
     xml_files = sorted(DATA_DIR.glob("title-48_*.xml"))
     for xml_path in tqdm(xml_files, desc="Building hierarchy graph"):
         graph = parse_file(xml_path)
-        out_path = DATA_DIR / "docs" / f"{xml_path.stem}.json"
+        out_path = docs_dir / f"{xml_path.stem}.json"
         out_path.write_text(json.dumps(graph, indent=2, ensure_ascii=False))
 
 

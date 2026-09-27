@@ -11,7 +11,7 @@ document per node:
       "section_number": "252.204-7012",
       "version_date": datetime(2024, 9, 25),
       "hierarchy": {"part", "subpart", "section"},
-      "section": {"number", "type", "parent", "children", "text"},
+      "section": {"number", "type", "parent", "children", "heading", "text"},
       "amendment_history": {"raw": "[80 FR 51745, ...]", "edits": [{"cite", "date"}]},
       "extracted_citations": {"usc": [...]},
       "edges": [...]
@@ -41,8 +41,7 @@ from dfars.extract_usc_citations import parse_amendment_history
 from utils.mongo_utils import getMongoClient, insert_docs, create_dfars_indexes
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = _PROJECT_ROOT / "data" / "DFARS"
-DOCS_DIR = DATA_DIR / "docs"
+DOCS_DIR = _PROJECT_ROOT / "data" / "DFARS" / "docs"
 
 DB_NAME = "ndaa_dfars"
 COLLECTION_NAME = "dfars"
@@ -79,19 +78,15 @@ def node_hierarchy(graph: dict, number: str) -> dict:
     and records the first ancestor of each level, counting the node itself. Levels that
     don't apply (e.g. a PART has no subpart/section) come back as ``None``.
     """
-    levels = {"PART": None, "SUBPART": None, "SECTION": None}
+    levels = {"part": None, "subpart": None, "section": None}
     cur = number
     while cur is not None and cur in graph:
         node = graph[cur]
-        ntype = node["type"]
-        if ntype in levels and levels[ntype] is None:
-            levels[ntype] = cur
+        level = node["type"].lower()
+        if level in levels and levels[level] is None:
+            levels[level] = cur
         cur = node["parent"]
-    return {
-        "part": levels["PART"],
-        "subpart": levels["SUBPART"],
-        "section": levels["SECTION"],
-    }
+    return levels
 
 
 def build_docs(date: str) -> list[dict]:
@@ -113,6 +108,7 @@ def build_docs(date: str) -> list[dict]:
                 "type": node["type"],
                 "parent": node["parent"],
                 "children": node["children"],
+                "heading": node.get("heading", ""),
                 "text": body,
             },
             "amendment_history": {
@@ -142,15 +138,15 @@ def main() -> None:
     # Drop once for a clean reload, then bulk-insert each version and index at the end.
     client[DB_NAME][COLLECTION_NAME].drop()
 
-    l = 0
+    n_docs = 0
     for date in tqdm(dates, desc="Building DFARS docs"):
         all_docs = build_docs(date)
-        l += len(all_docs)
+        n_docs += len(all_docs)
         insert_docs(client, DB_NAME, COLLECTION_NAME, all_docs)
 
     create_dfars_indexes(client, DB_NAME, COLLECTION_NAME)
 
-    print(f"\nInserted {l} node docs across {len(dates)} versions "
+    print(f"\nInserted {n_docs} node docs across {len(dates)} versions "
           f"into {DB_NAME}.{COLLECTION_NAME}.")
 
 

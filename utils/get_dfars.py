@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fetch the content of a DFARS hierarchy node, as plain text, from the local XML.
 
-A node lives in a `data/DFARS/title-48_<date>.json` hierarchy graph (keyed by
+A node lives in a `data/DFARS/docs/title-48_<date>.json` hierarchy graph (keyed by
 number, with `type`/`parent`/`children`). Its textual content lives in the
 matching `data/DFARS/title-48_<date>.xml`. Given a version and a node number,
 this returns the node's own text plus all of its descendants, concatenated.
@@ -40,11 +40,11 @@ def _load_xml(version: str) -> ET.Element:
 
 
 def _load_graph(version: str) -> dict:
-    path = DATA_DIR / f"title-48_{version}.json"
+    path = DATA_DIR / "docs" / f"title-48_{version}.json"
     if not path.exists():
         raise FileNotFoundError(
             f"DFARS hierarchy JSON for version {version} not found at {path}. "
-            f"Run `uv run extract_hierarchy.py` first."
+            f"Run `uv run dfars/extract_hierarchy.py` first."
         )
     return json.loads(path.read_text())
 
